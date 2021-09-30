@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kr.co.ztec.wsSerial", "kr.c
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wsSerialController", "wsSerialController\wsSerialController.csproj", "{97D2E567-4F72-4C2D-AAE1-78CC908DC6F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kr.co.ztec.io", "kr.co.ztec.io\kr.co.ztec.io.csproj", "{65DCDCDC-958A-4D2F-B17D-EF0702007232}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,18 @@ Global
 		{97D2E567-4F72-4C2D-AAE1-78CC908DC6F5}.Release|x64.Build.0 = Release|Any CPU
 		{97D2E567-4F72-4C2D-AAE1-78CC908DC6F5}.Release|x86.ActiveCfg = Release|Any CPU
 		{97D2E567-4F72-4C2D-AAE1-78CC908DC6F5}.Release|x86.Build.0 = Release|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Debug|x64.Build.0 = Debug|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Debug|x86.Build.0 = Debug|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Release|x64.ActiveCfg = Release|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Release|x64.Build.0 = Release|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Release|x86.ActiveCfg = Release|Any CPU
+		{65DCDCDC-958A-4D2F-B17D-EF0702007232}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
