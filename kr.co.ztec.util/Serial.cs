@@ -7,6 +7,7 @@ namespace kr.co.ztec.util
 
   public class Serial
   {
+
     /****
      * +----+----+ +----+----+ +----+----+ +----+----+
      * +----+----+ +----+----+ +----+----+ +----+----+
@@ -20,11 +21,12 @@ namespace kr.co.ztec.util
     protected System.Threading.Thread _thread;
     protected System.IO.Ports.SerialPort sport = new System.IO.Ports.SerialPort();
 
-    public dlgtOnRead _dlgtOnRead = new dlgtOnRead(OnCallbackRead);
+    public dlgtOnRead _dlgtOnRead;
     public ISerial _isrl = null;
     public Serial(ISerial isrl)
     {
       SetInterface(isrl);
+      _dlgtOnRead = new dlgtOnRead(OnCallbackRead);
     }
 
     public void SetInterface(ISerial isrl)
