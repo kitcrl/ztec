@@ -77,7 +77,7 @@ namespace kr.co.ztec.io
         if ((_SR_ & 0x00000001) == 0x00000001) break;
         try
         {
-          //r = Read(rbuf, 128);
+          r = Read(rbuf, 128);
         }
         catch (TimeoutException exp)
         {
@@ -85,7 +85,7 @@ namespace kr.co.ztec.io
 
         if (r > 0)
         {
-
+         
         }
 
         System.Diagnostics.Debug.WriteLine("DoRead");
