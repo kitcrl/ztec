@@ -10,12 +10,11 @@ using System.Windows.Forms;
 
 namespace ztecSerialApp
 {
-  delegate void CallbackRead(byte[] b, Int32 sz);
   public partial class Form1 : Form, kr.co.ztec.util.ISerial
   {
 
     kr.co.ztec.util.Serial _serial;
-    CallbackRead _callbackRead;
+
     public Form1()
     {
       InitializeComponent();
@@ -27,18 +26,13 @@ namespace ztecSerialApp
       this.m_btnOpen.Text = "OPEN";
       this.m_btnWrite.Text = "WRITE";
       this.m_btnClear.Text = "CLEAR";
-      _serial = new kr.co.ztec.util.Serial(this);
-      _callbackRead = new CallbackRead(OnRead);
-    }
 
-    private void OnRead(byte[] b, Int32 sz)
-    {
-      m_txtRead.Text = Encoding.Default.GetString(b);
+      _serial = new kr.co.ztec.util.Serial(this);
     }
 
     public void Read(byte[] b, int sz)
     {
-      _callbackRead.Invoke(b, sz);
+      m_txtRead.Text = Encoding.Default.GetString(b);
     }
 
     private void m_btnOpen_Click(object sender, EventArgs e)
@@ -48,7 +42,6 @@ namespace ztecSerialApp
         if (this._serial.Open(this.m_txtPort.Text, this.m_txtBaud.Text) > 0)
         {
           this.m_btnOpen.Text = "CLOSE";
-          //this._serial._dlgtOnRead = new kr.co.ztec.util.dlgtOnRead(OnRead);
         }
       }
       else

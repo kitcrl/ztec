@@ -20,7 +20,7 @@ namespace kr.co.ztec.util
     protected System.Threading.Thread _thread;
     protected System.IO.Ports.SerialPort sport = new System.IO.Ports.SerialPort();
 
-    public dlgtOnRead _dlgtOnRead;
+    public dlgtOnRead _dlgtOnRead = new dlgtOnRead(OnCallbackRead);
     public ISerial _isrl = null;
     public Serial(ISerial isrl)
     {
@@ -66,6 +66,12 @@ namespace kr.co.ztec.util
       return eCode;
     }
 
+    public void OnCallbackRead(byte[] b, Int32 sz)
+    {
+      if (_isrl != null) _isrl.Read(b, sz);
+    }
+
+
     public void DoRead()
     {
       Int32 r = 0;
@@ -86,8 +92,7 @@ namespace kr.co.ztec.util
         }
         if (r > 0)
         {
-          //if ( _dlgtOnRead != null ) _dlgtOnRead.Invoke(rbuf, r);
-          if (_isrl != null) _isrl.Read(rbuf, r);
+          if ( _dlgtOnRead != null ) _dlgtOnRead.Invoke(rbuf, r);
         }
         System.Threading.Thread.Sleep(1);
       }
