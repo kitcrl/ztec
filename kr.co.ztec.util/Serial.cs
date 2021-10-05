@@ -21,10 +21,15 @@ namespace kr.co.ztec.util
     protected System.IO.Ports.SerialPort sport = new System.IO.Ports.SerialPort();
 
     public dlgtOnRead _dlgtOnRead;
-
-    public Serial()
+    public ISerial _isrl = null;
+    public Serial(ISerial isrl)
     {
+      SetInterface(isrl);
+    }
 
+    public void SetInterface(ISerial isrl)
+    {
+      this._isrl = isrl;
     }
 
     public Int32 Open(string port, string baudrate)
@@ -81,7 +86,8 @@ namespace kr.co.ztec.util
         }
         if (r > 0)
         {
-          if ( _dlgtOnRead != null ) _dlgtOnRead.Invoke(rbuf, r);
+          //if ( _dlgtOnRead != null ) _dlgtOnRead.Invoke(rbuf, r);
+          if (_isrl != null) _isrl.Read(rbuf, r);
         }
         System.Threading.Thread.Sleep(1);
       }
