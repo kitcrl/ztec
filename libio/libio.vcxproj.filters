@@ -13,4 +13,9 @@
       <Filter>io</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="io\serial.h">
+      <Filter>io</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
