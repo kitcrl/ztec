@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="io">
+      <UniqueIdentifier>{884209e7-c323-4663-9ce5-4213d39ebf5f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="io\serial.c">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\socket.c">
+      <Filter>io</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
