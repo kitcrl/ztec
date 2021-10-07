@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="c">
+      <UniqueIdentifier>{a4f76a20-7579-4d33-a906-45ea48fa9d1c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="c\serial.h">
+      <Filter>c</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="c\serial.c">
+      <Filter>c</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
