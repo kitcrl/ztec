@@ -7,11 +7,22 @@ typedef struct
   void*  hmodule;
 
   int32_t fd;
-  int32_t (*serial_open)(int8_t* port, int8_t* baudrate, int8_t* databit, int8_t* stopbit, int8_t* paritiy);
+  int32_t (*serial_open)(int8_t* port, int8_t* baudrate, int8_t* databit, int8_t* stopbit, int8_t* paritiy, int32_t (*f)(int32_t,int8_t*,int32_t));
   int32_t (*serial_close)(int32_t fd);
   int32_t (*serial_read)(int32_t fd, int8_t* b, int32_t sz);
   int32_t (*serial_write)(int32_t fd, int8_t* b, int32_t sz);
 }tagIO;
+
+
+int32_t on_serial_callback(int32_t fd, int8_t* b, int32_t sz)
+{
+  int32_t e = 0;
+
+  printf("on_serial_callback( %d, %s, %d );\r\n", fd, b, sz);
+
+  return e;  /// 0 : NORMAL,  0<e : .....,   0>e : ....
+}
+
 
 
 void main()
@@ -44,7 +55,7 @@ void main()
   *(FARPROC*)&_io.serial_write = GetProcAddress(_io.hmodule, "serial_write");
 
 
-  _io.fd = _io.serial_open("COM3", "115200", "8", "0", "0");
+  _io.fd = _io.serial_open("COM3", "115200", "8", "0", "0", on_serial_callback);
 
 
 
