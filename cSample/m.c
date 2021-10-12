@@ -7,14 +7,16 @@ typedef struct
   void*  hmodule;
 
   int32_t fd;
-  int32_t (*serial_open)(int8_t* port, int8_t* baudrate, int8_t* databit, int8_t* stopbit, int8_t* paritiy, int32_t (*f)(int32_t,int8_t*,int32_t));
-  int32_t (*serial_close)(int32_t fd);
-  int32_t (*serial_read)(int32_t fd, int8_t* b, int32_t sz);
-  int32_t (*serial_write)(int32_t fd, int8_t* b, int32_t sz);
+  int32_t (*serial_open)(void**, int8_t* port, int8_t* baudrate, int8_t* databit, int8_t* stopbit, int8_t* paritiy, int32_t (*f)(int32_t,int8_t*,int32_t));
+  int32_t (*serial_close)(void**, int32_t fd);
+  int32_t (*serial_read)(void*, int32_t fd, int8_t* b, int32_t sz);
+  int32_t (*serial_write)(void*, int32_t fd, int8_t* b, int32_t sz);
+
+  void* hSerial;
 }tagIO;
 
 
-int32_t on_serial_callback(int32_t fd, int8_t* b, int32_t sz)
+int32_t on_serial_callback(void* h, int32_t fd, int8_t* b, int32_t sz)
 {
   int32_t e = 0;
 
@@ -55,7 +57,7 @@ void main()
   *(FARPROC*)&_io.serial_write = GetProcAddress(_io.hmodule, "serial_write");
 
 
-  _io.fd = _io.serial_open("COM3", "115200", "8", "0", "0", on_serial_callback);
+  _io.fd = _io.serial_open(&_io.hSerial, "COM3", "115200", "8", "0", "0", on_serial_callback);
 
 
 
@@ -65,5 +67,12 @@ void main()
 
 
 
-  _io.serial_close(_io.fd);
+  _io.serial_close(&_io.hSerial, _io.fd);
+
+
+  printf("Press Any Key to Continue ......\r\n");
+  getch();
+
+
+
 }
