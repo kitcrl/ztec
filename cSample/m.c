@@ -47,5 +47,12 @@ void main()
   _io.fd = _io.serial_open("COM3", "115200", "8", "0", "0");
 
 
+
+  printf("Press Any Key to Close ......\r\n");
+  getch();
+
+
+
+
   _io.serial_close(_io.fd);
 }

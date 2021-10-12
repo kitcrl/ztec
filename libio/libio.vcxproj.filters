@@ -17,5 +17,8 @@
     <ClInclude Include="io\serial.h">
       <Filter>io</Filter>
     </ClInclude>
+    <ClInclude Include="io\common.h">
+      <Filter>io</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

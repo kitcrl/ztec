@@ -161,6 +161,7 @@ copy /y $(ProjectDir)\io\*.h $(SolutionDir)\out</Command>
     <ClCompile Include="io\socket.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="io\common.h" />
     <ClInclude Include="io\serial.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
