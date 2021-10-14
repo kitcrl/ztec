@@ -17,7 +17,6 @@ namespace kr.co.ztec.io
     [DllImport("libio.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
     private static extern Int32 serial_read(void* h, Int32 fd, byte* b, Int32 sz);
 
-
     [DllImport("libio.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
     private static extern Int32 serial_write(void* h, Int32 fd, byte* b, Int32 sz);
 
