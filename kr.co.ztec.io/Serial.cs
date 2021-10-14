@@ -14,7 +14,6 @@ namespace kr.co.ztec.io
     [DllImport("libio.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
     private static extern Int32 serial_close(out void* h, Int32 fd);
 
-
     [DllImport("libio.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
     private static extern Int32 serial_read(void* h, Int32 fd, byte* b, Int32 sz);
 
@@ -23,11 +22,33 @@ namespace kr.co.ztec.io
     private static extern Int32 serial_write(void* h, Int32 fd, byte* b, Int32 sz);
 
 
-
     public Serial()
     {
 
     }
+
+    public Int32 Open(string name, string baudrate, string databit, string stopbit, string parity)
+    {
+      Int32 e = 0;
+
+      return e;
+    }
+
+    public Int32 Close()
+    {
+      Int32 e = 0;
+
+      return e;
+    }
+
+    public Int32 Write(byte[] b, Int32 sz)
+    {
+      Int32 e = 0;
+
+      return e;
+    }
+
+
 
   }
 
