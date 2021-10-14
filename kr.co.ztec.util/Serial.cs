@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 
 namespace kr.co.ztec.util
 {
-  public delegate void dlgtOnRead(byte[] b, Int32 sz);
-
   public class Serial
   {
 
