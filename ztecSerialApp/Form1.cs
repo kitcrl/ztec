@@ -60,7 +60,10 @@ namespace ztecSerialApp
 
     int ISerial.Read(byte[] b, int sz)
     {
-      throw new NotImplementedException();
+      int e = 0;
+
+
+      return e;
     }
   }
 }
