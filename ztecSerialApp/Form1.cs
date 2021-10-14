@@ -1,4 +1,5 @@
-﻿using System;
+﻿using kr.co.ztec.io;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,10 +11,10 @@ using System.Windows.Forms;
 
 namespace ztecSerialApp
 {
-  public partial class Form1 : Form, kr.co.ztec.util.ISerial
+  public partial class Form1 : Form, kr.co.ztec.io.ISerial
   {
 
-    kr.co.ztec.util.Serial _serial;
+    kr.co.ztec.io.Serial _serial;
 
     public Form1()
     {
@@ -27,19 +28,13 @@ namespace ztecSerialApp
       this.m_btnWrite.Text = "WRITE";
       this.m_btnClear.Text = "CLEAR";
 
-      _serial = new kr.co.ztec.util.Serial(this);
+      _serial = new kr.co.ztec.io.Serial(this);
     }
-
-    public void Read(byte[] b, int sz)
-    {
-      m_txtRead.Text = Encoding.Default.GetString(b);
-    }
-
     private void m_btnOpen_Click(object sender, EventArgs e)
     {
       if (this.m_btnOpen.Text == "OPEN")
       {
-        if (this._serial.Open(this.m_txtPort.Text, this.m_txtBaud.Text) > 0)
+        if (this._serial.Open(this.m_txtPort.Text, this.m_txtBaud.Text, "8", "1", "0") > 0)
         {
           this.m_btnOpen.Text = "CLOSE";
         }
@@ -63,5 +58,9 @@ namespace ztecSerialApp
 
     }
 
+    int ISerial.Read(byte[] b, int sz)
+    {
+      throw new NotImplementedException();
+    }
   }
 }
