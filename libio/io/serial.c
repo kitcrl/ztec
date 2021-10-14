@@ -63,21 +63,23 @@ void* serial_proc(void* arg)
   while ( (p->_SR_&0x00000001) == 0x00000000 )
   {
     e = serial_read(p, p->fd, b, 32);
-
-    e = (*p->on_serial_read)(p->o, p->fd, b, e);
-    if ( e < 0 )
+    if ( e > 0 )
     {
+      e = (*p->on_serial_read)(p->o, p->fd, b, e);
+      if ( e < 0 )
+      {
 
-    }
-    else if ( e > 0 )
-    {
+      }
+      else if ( e > 0 )
+      {
 
-    }
-    else
-    {
+      }
+      else
+      {
 
+      }
     }
-    zDelay(1000);
+    zDelay(1);
   }
   p->_SR_ &= 0x7FFFFFFE;
   CloseHandle(p->_thr);
