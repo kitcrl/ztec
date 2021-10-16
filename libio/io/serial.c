@@ -23,7 +23,7 @@ typedef struct
   uint32_t _tid;
   uint32_t _SR_;
   int32_t  fd;
-} tagZSerial;
+} tagCSerial;
 #pragma pack()
 
 
@@ -33,9 +33,9 @@ int32_t serial_read(void* h, int32_t fd, int8_t* b, int32_t sz)
 {
   int32_t e = 0;
   int32_t r = 0;
-  tagZSerial* p = (tagZSerial*)h;
+  tagCSerial* p = (tagCSerial*)h;
 
-	e = ReadFile((HANDLE)fd, (LPWSABUF)b, sz,	&r,	0);
+	e = (int32_t)ReadFile((HANDLE)fd, (LPWSABUF)b, sz,	&r,	0);
 
   return r;
 }
@@ -45,21 +45,19 @@ int32_t serial_write(void* h, int32_t fd, int8_t* b, int32_t sz)
 {
   int32_t e = 0;
   int32_t w = 0;
-  tagZSerial* p = (tagZSerial*)h;
+  tagCSerial* p = (tagCSerial*)h;
 
 	e = WriteFile((HANDLE)fd, b, (DWORD)sz, &w, 0);
   return w;
 }
 
 
-void* serial_proc(void* arg)
+void* serial_reader(void* arg)
 {
   int32_t e = 0;
   int8_t b[32] = {0};
-  tagZSerial* p = (tagZSerial*)arg;
-  printf("Thread Start 1 \r\n");
+  tagCSerial* p = (tagCSerial*)arg;
   p->_SR_ |= 0x80000000;
-  printf("Thread Start 2 \r\n");
   while ( (p->_SR_&0x00000001) == 0x00000000 )
   {
     e = serial_read(p, p->fd, b, 32);
@@ -127,31 +125,35 @@ int32_t dev_open(int8_t* port, int8_t* baudrate, int8_t* databit, int8_t* stopbi
 
 	return fd;
 }
+
+int32_t dev_close(int32_t fd)
+{
+  CloseHandle(fd);
+	WSACleanup();
+  return 0;
+}
+
 __declspec(dllexport)
 int32_t serial_open(void** h, int8_t* port, int8_t* baudrate, int8_t* databit, int8_t* stopbit, int8_t* parity, int32_t (*f)(int32_t fd, int8_t* b, int32_t sz), void* o)
 {
   int32_t e = 0;
   uint32_t tid = 0;
-  tagZSerial* p = 0;
+  tagCSerial* p = 0;
 
 
   e = dev_open(port, baudrate, databit, stopbit, parity);
   if ( e < 0 ) return 0xEFFFFFFF;
 
 
-  *h = (tagZSerial*)calloc(1, sizeof(tagZSerial));
-
-  p = (tagZSerial*)(*h);
+  p = *h = (tagCSerial*)calloc(1, sizeof(tagCSerial));
 
   p->fd = e;
 
   p->on_serial_read = f;
   p->o = o;
 
-  zTHREAD_CREATE(serial_proc, p, &p->_tid, p->_thr);
-  printf("Thread Start Request 1 \r\n");
+  zTHREAD_CREATE(serial_reader, p, &p->_tid, p->_thr);
   while ( (p->_SR_&0x80000000) == 0x00000000 );
-  printf("Thread Start Request 2 \r\n");
 
   return e;
 }
@@ -160,15 +162,16 @@ __declspec(dllexport)
 int32_t serial_close(void** h, int32_t fd)
 {
   int32_t e = 0;
-  tagZSerial* p = 0;
-  p = (tagZSerial*)(*h);
-
+  tagCSerial* p = 0;
+  p = (tagCSerial*)(*h);
 
   p->_SR_|=0x00000001;
   while ( 1 )
   {
     if ( (p->_SR_&0x80000001) == 0x00000000 ) break;
   }
+  dev_close(fd);
+
 
   if (*h)
   {
@@ -177,9 +180,6 @@ int32_t serial_close(void** h, int32_t fd)
   }
 
 
-
-	CloseHandle(fd);
-	WSACleanup();
 
   return e;
 }
