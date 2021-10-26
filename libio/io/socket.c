@@ -51,15 +51,38 @@ int32_t socket_open(void** h)
 
   p->fd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 
+  printf(" server socket ---> %d \r\n", p->fd);
+
   p->_in.sin_family = AF_INET;
   p->_in.sin_addr.s_addr = htonl(INADDR_ANY);
   p->_in.sin_port = htons(7810);
 
 
   e = bind(p->fd, (struct sockaddr*)&(p->_in), sizeof(struct sockaddr));
-  
 
   listen(p->fd, 5);
+
+  {
+    struct sockaddr client = {0};
+    struct sockaddr_in* pc = &client;
+    int32_t csz = sizeof(struct sockaddr_in);
+    int32_t cfd = 0;
+    cfd = accept(p->fd, &client, &csz);
+
+    printf( " -> client ip   : %d.%d.%d.%d\r\n"
+            " -> client port : %d\r\n"
+            " -> client fd   : %d\r\n"
+            " -> server fd   : %d\r\n",
+              (pc->sin_addr.s_addr&0x000000FF),
+              (pc->sin_addr.s_addr&0x0000FF00)>>8,
+              (pc->sin_addr.s_addr&0x00FF0000)>>16,
+              (pc->sin_addr.s_addr&0xFF000000)>>24,
+              pc->sin_port,
+              cfd,
+              p->fd);
+
+  }
+
 
   return e;
 }
@@ -71,7 +94,7 @@ int32_t socket_close(void** h)
   tagCSocket* p = (tagCSocket*)(*h);
 
   shutdown(p->fd, SD_BOTH);
-  close(p->fd);
+  closesocket(p->fd);
 
   if ( *h )
   {
