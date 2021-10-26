@@ -12,7 +12,12 @@ typedef struct
   int32_t (*serial_read)(void*, int32_t fd, int8_t* b, int32_t sz);
   int32_t (*serial_write)(void*, int32_t fd, int8_t* b, int32_t sz);
 
+  int32_t (*socket_open)(void**);
+  int32_t (*socket_close)(void**);
+
+
   void* hSerial;
+  void* hSocket;
 }tagIO;
 
 
@@ -57,17 +62,31 @@ void main()
   *(FARPROC*)&_io.serial_write = GetProcAddress(_io.hmodule, "serial_write");
 
 
-  _io.fd = _io.serial_open(&_io.hSerial, "COM3", "115200", "8", "0", "0", on_serial_callback, &_io);
+  *(FARPROC*)&_io.socket_open = GetProcAddress(_io.hmodule, "socket_open");
+  *(FARPROC*)&_io.socket_close = GetProcAddress(_io.hmodule, "socket_close");
 
+
+
+  _io.socket_open(&_io.hSocket);
 
 
   printf("Press Any Key to Close ......\r\n");
   getch();
 
+  _io.socket_close(&_io.hSocket);
+
+
+  //_io.fd = _io.serial_open(&_io.hSerial, "COM3", "115200", "8", "0", "0", on_serial_callback, &_io);
 
 
 
-  _io.serial_close(&_io.hSerial, _io.fd);
+  //printf("Press Any Key to Close ......\r\n");
+  //getch();
+
+
+
+
+  //_io.serial_close(&_io.hSerial, _io.fd);
 
 
   printf("Press Any Key to Continue ......\r\n");
