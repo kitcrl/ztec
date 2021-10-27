@@ -10,6 +10,18 @@ enum
   SOCKET_CALLBACK,
 };
 
+/****
+  * +----+----+ +----+----+ +----+----+ +----+----+
+  * +----+----+ +----+----+ +----+----+ +----+----+
+  *  ^^   ^^
+  *  ||   ||
+  *  ||   |+-------------------------------------------- 1 : Reader Stop Request
+  *  ||   +--------------------------------------------- 1 : Reader in Thread
+  *  ||
+  *  |+------------------------------------------------- 1 : accepter stop
+  *  +-------------------------------------------------- 1 : accepter in thread
+****/
+
 
 /****
   * +----+----+ +----+----+ +----+----+ +----+----+
@@ -37,8 +49,8 @@ typedef struct
   int32_t (*callback[SOCKET_CALLBACK])(void* h, int32_t fd, int8_t* b, int32_t sz, int32_t err, void* o);
   void*    o;
 
-  void*    _thr;
-  uint32_t _tid;
+  void*    _thr[SOCKET_CALLBACK];
+  uint32_t _tid[SOCKET_CALLBACK];
   uint32_t _SR_;
   int32_t  fd;
 
@@ -64,6 +76,71 @@ int32_t socket_write()
   return e;
 }
 
+
+
+void* socket_accepter(void* arg)
+{
+  int32_t e = 0;
+  int8_t b[32] = {0};
+  struct sockaddr client = {0};
+  struct sockaddr_in* pc = &client;
+  int32_t csz = sizeof(struct sockaddr_in);
+  int32_t cfd = 0;
+  int32_t cbinfo[1024] = {0};
+  tagCSocket* p = (tagCSocket*)arg;
+
+  p->_SR_ |= 0x80000000;
+  while ( (p->_SR_&0x40000000) == 0x00000000 )
+  {
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDAB, 0);
+    cfd = accept(p->fd, &client, &csz);
+    if ( cfd > 0 )
+    {
+      sprintf(cbinfo, "%d:%d.%d.%d.%d:%d",cfd,
+              (pc->sin_addr.s_addr&0x000000FF),
+              (pc->sin_addr.s_addr&0x0000FF00)>>8,
+              (pc->sin_addr.s_addr&0x00FF0000)>>16,
+              (pc->sin_addr.s_addr&0xFF000000)>>24,
+              htons(pc->sin_port));
+    }
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDAA, cfd>0?cbinfo:0);
+    zDelay(1);
+  }
+  p->_SR_ &= 0x3FFFFFFF;
+  CloseHandle(p->_thr[0]);
+  return 0;
+}
+
+
+
+void* socket_reader(void* arg)
+{
+  int32_t e = 0;
+  int8_t b[1024] = {0};
+  tagCSocket* p = (tagCSocket*)arg;
+
+  p->_SR_ |= 0x08000000;
+  while ( (p->_SR_&0x04000000) == 0x00000000 )
+  {
+    p->callback[SOCKET_ON_READ](p->o, p->fd, 0, 0, 0xE000101B, 0);
+
+    p->callback[SOCKET_ON_READ](p->o, p->fd, 0, 0, 0xE000101A, 0);
+    zDelay(1);
+  }
+  p->_SR_ &= 0xF3FFFFFF;
+  CloseHandle(p->_thr[0]);
+  return 0;
+}
+
+
+
+int32_t socket_option(int32_t fd)
+{
+  uint64_t  opt = 1;
+  ioctlsocket(fd, FIONBIO, &opt);
+  return 0;
+}
+
 __declspec(dllexport)
 int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_t,int32_t,void*), void* o)
 {
@@ -83,6 +160,8 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
   p->fd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD0A, 0);
 
+  socket_option(p->fd);
+
   p->_in.sin_family = AF_INET;
   p->_in.sin_addr.s_addr = htonl(INADDR_ANY);
   p->_in.sin_port = htons(7810);
@@ -96,26 +175,13 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
   listen(p->fd, 5);
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7A, 0);
 
-  {
-    struct sockaddr client = {0};
-    struct sockaddr_in* pc = &client;
-    int32_t csz = sizeof(struct sockaddr_in);
-    int32_t cfd = 0;
-    cfd = accept(p->fd, &client, &csz);
+  ////// create thread
+  zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
+  while ( (p->_SR_&0x80000000) == 0x00000000 );
 
-    printf( " -> client ip   : %d.%d.%d.%d\r\n"
-            " -> client port : %d\r\n"
-            " -> client fd   : %d\r\n"
-            " -> server fd   : %d\r\n",
-              (pc->sin_addr.s_addr&0x000000FF),
-              (pc->sin_addr.s_addr&0x0000FF00)>>8,
-              (pc->sin_addr.s_addr&0x00FF0000)>>16,
-              (pc->sin_addr.s_addr&0xFF000000)>>24,
-              pc->sin_port,
-              cfd,
-              p->fd);
+  zTHREAD_CREATE(socket_reader, p, &p->_tid[1], p->_thr[1]);
+  while ( (p->_SR_&0x08000000) == 0x00000000 );
 
-  }
 
 
   return e;
