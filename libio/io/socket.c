@@ -128,7 +128,7 @@ void* socket_reader(void* arg)
     zDelay(1);
   }
   p->_SR_ &= 0xF3FFFFFF;
-  CloseHandle(p->_thr[0]);
+  CloseHandle(p->_thr[1]);
   return 0;
 }
 
@@ -177,10 +177,8 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
 
   ////// create thread
   zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
-  while ( (p->_SR_&0x80000000) == 0x00000000 );
-
   zTHREAD_CREATE(socket_reader, p, &p->_tid[1], p->_thr[1]);
-  while ( (p->_SR_&0x08000000) == 0x00000000 );
+  while ( 1 ) if( (p->_SR_&0x88000000) == 0x88000000 ) break;
 
 
 
@@ -192,6 +190,9 @@ int32_t socket_close(void** h)
 {
   int32_t e = 0;
   tagCSocket* p = (tagCSocket*)(*h);
+
+  p->_SR_|=0x44000000;
+  while ( 1 ) if ( (p->_SR_&0xCC000000) == 0x00000000 ) break;
 
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDCB, 0);
   shutdown(p->fd, SD_BOTH);
