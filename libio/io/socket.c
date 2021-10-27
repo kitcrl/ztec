@@ -88,13 +88,13 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
   p->_in.sin_port = htons(7810);
 
 
-  p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000FDBB, 0);
+  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBB, 0);
   e = bind(p->fd, (struct sockaddr*)&(p->_in), sizeof(struct sockaddr));
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBA, 0);
 
-  p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000FD7B, 0);
+  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7B, 0);
   listen(p->fd, 5);
-  p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000FD7A, 0);
+  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7A, 0);
 
   {
     struct sockaddr client = {0};
@@ -127,10 +127,10 @@ int32_t socket_close(void** h)
   int32_t e = 0;
   tagCSocket* p = (tagCSocket*)(*h);
 
-  p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000FDCB, 0);
+  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDCB, 0);
   shutdown(p->fd, SD_BOTH);
   closesocket(p->fd);
-  p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000FDCA, 0);
+  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDCA, 0);
 
   if ( *h )
   {
