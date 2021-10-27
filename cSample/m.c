@@ -15,6 +15,8 @@ typedef struct
   int32_t (*socket_open)(void**);
   int32_t (*socket_close)(void**);
 
+  int32_t (*socket_callback[2])(void* h, int32_t fd, int8_t* b, int32_t sz, int32_t err, void* o);
+
 
   void* hSerial;
   void* hSocket;
@@ -30,6 +32,16 @@ int32_t on_serial_callback(void* h, int32_t fd, int8_t* b, int32_t sz)
   return e;  /// 0 : NORMAL,  0<e : .....,   0>e : ....
 }
 
+int32_t on_socket_status(void* h, int32_t fd, int8_t* b, int32_t sz, int32_t err, void* o)
+{
+  printf(" STATUS %08X( %12d )   <----  %d \r\n", err, err, fd);
+  return 0;
+}
+int32_t on_socket_read(void* h, int32_t fd, int8_t* b, int32_t sz, int32_t err, void* o)
+{
+  printf(" READ   %08X( %12d )   <----  %d \r\n", err, err, fd);
+  return 0;
+}
 
 
 void main()
@@ -67,7 +79,9 @@ void main()
 
 
 
-  _io.socket_open(&_io.hSocket);
+  _io.socket_callback[0] = on_socket_status;
+  _io.socket_callback[1] = on_socket_read;
+  _io.socket_open(&_io.hSocket, _io.socket_callback, &_io);
 
 
   printf("Press Any Key to Close ......\r\n");
