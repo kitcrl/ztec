@@ -61,17 +61,21 @@ typedef struct
 
 
 __declspec(dllexport)
-int32_t socket_read()
+int32_t socket_read(void* h, int32_t fd, int8_t* b, int32_t sz)
 {
   int32_t e = 0;
+
+  e = recv(fd, b, sz, 0);
 
   return e;
 }
 
 __declspec(dllexport)
-int32_t socket_write()
+int32_t socket_write(void* h, int32_t fd, int8_t* b, int32_t sz)
 {
   int32_t e = 0;
+
+  e = send(fd, b, sz, 0);
 
   return e;
 }
@@ -122,16 +126,19 @@ void* socket_reader(void* arg)
   p->_SR_ |= 0x08000000;
   while ( (p->_SR_&0x04000000) == 0x00000000 )
   {
-    p->callback[SOCKET_ON_READ](p->o, p->fd, 0, 0, 0xE000101B, 0);
-
-    p->callback[SOCKET_ON_READ](p->o, p->fd, 0, 0, 0xE000101A, 0);
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000101B, 0);
+    e = socket_read(p, p->fd, b, 1024);
+    if ( e > 0 )
+    {
+      p->callback[SOCKET_ON_READ](p->o, p->fd, b, e, 0, 0);
+    }
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000101A, 0);
     zDelay(1);
   }
   p->_SR_ &= 0xF3FFFFFF;
   CloseHandle(p->_thr[1]);
   return 0;
 }
-
 
 
 int32_t socket_option(int32_t fd)
@@ -147,6 +154,11 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
   int32_t e = 0;
 	WSADATA wsaData = {0};
   tagCSocket* p = 0;
+
+
+  uint32_t tid;
+  uint32_t thr;
+  tagCSocket sck = {0};
 
 	if ( WSAStartup(0x202, &wsaData) != 0 ) return 0xE0000001;
 
@@ -179,8 +191,6 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
   zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
   zTHREAD_CREATE(socket_reader, p, &p->_tid[1], p->_thr[1]);
   while ( 1 ) if( (p->_SR_&0x88000000) == 0x88000000 ) break;
-
-
 
   return e;
 }
