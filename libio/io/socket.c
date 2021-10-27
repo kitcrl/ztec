@@ -60,6 +60,8 @@ typedef struct
 #pragma pack()
 
 
+int32_t   gcfd;
+
 __declspec(dllexport)
 int32_t socket_read(void* h, int32_t fd, int8_t* b, int32_t sz)
 {
@@ -100,6 +102,7 @@ void* socket_accepter(void* arg)
     cfd = accept(p->fd, &client, &csz);
     if ( cfd > 0 )
     {
+      gcfd = cfd;
       sprintf(cbinfo, "%d:%d.%d.%d.%d:%d",cfd,
               (pc->sin_addr.s_addr&0x000000FF),
               (pc->sin_addr.s_addr&0x0000FF00)>>8,
@@ -126,13 +129,13 @@ void* socket_reader(void* arg)
   p->_SR_ |= 0x08000000;
   while ( (p->_SR_&0x04000000) == 0x00000000 )
   {
-    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000101B, 0);
-    e = socket_read(p, p->fd, b, 1024);
+    p->callback[SOCKET_ON_STATUS](p->o, gcfd, 0, 0, 0xE000101B, 0);
+    e = socket_read(p, gcfd, b, 1024);
     if ( e > 0 )
     {
-      p->callback[SOCKET_ON_READ](p->o, p->fd, b, e, 0, 0);
+      p->callback[SOCKET_ON_READ](p->o, gcfd, b, e, 0, 0);
     }
-    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000101A, 0);
+    p->callback[SOCKET_ON_STATUS](p->o, gcfd, 0, 0, 0xE000101A, 0);
     zDelay(1);
   }
   p->_SR_ &= 0xF3FFFFFF;

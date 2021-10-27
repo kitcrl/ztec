@@ -34,19 +34,19 @@ int32_t on_serial_callback(void* h, int32_t fd, int8_t* b, int32_t sz)
 
 int32_t on_socket_status(void* h, int32_t fd, int8_t* b, int32_t sz, int32_t err, void* o)
 {
-  printf(" STATUS %08X( %12d )   <----  %d \r\n", err, err, fd);
+  //printf(" STATUS %08X( %12d )   <----  %d \r\n", err, err, fd);
 
   switch(err)
   {
     case 0xE000FDAA:
-      printf("  %s \r\n", o);
+      if ( o ) printf("  %s \r\n", o);
       break;
   }
   return 0;
 }
 int32_t on_socket_read(void* h, int32_t fd, int8_t* b, int32_t sz, int32_t err, void* o)
 {
-  printf(" READ   %08X( %12d )   <----  %d \r\n", err, err, fd);
+  printf(" READ   %08X( %12d )   <----  %d %s\r\n", err, err, fd, b);
   return 0;
 }
 
