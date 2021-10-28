@@ -218,20 +218,25 @@ void* socket_accepter(void* arg)
 
 void* socket_reader(void* arg)
 {
+  int32_t i = 0;
   int32_t e = 0;
+  int32_t fd = 0;
   int8_t b[1024] = {0};
   tagCSocket* p = (tagCSocket*)arg;
 
   p->_SR_ |= 0x08000000;
   while ( (p->_SR_&0x04000000) == 0x00000000 )
   {
-    p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000101B, 0);
-    e = socket_read(p, 0, b, 1024);
+    fd = p->_client.fd[i];
+    i = ((++i)%MAX_CLIENT);
+    if ( fd <=0 ) continue;
+    p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101B, 0);
+    e = socket_read(p, fd, b, 1024);
     if ( e > 0 )
     {
-      p->callback[SOCKET_ON_READ](p->o, 0, b, e, 0, 0);
+      p->callback[SOCKET_ON_READ](p->o, fd, b, e, 0, 0);
     }
-    p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000101A, 0);
+    p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101A, 0);
     zDelay(1);
   }
   p->_SR_ &= 0xF3FFFFFF;
