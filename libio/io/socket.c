@@ -178,7 +178,7 @@ void* socket_accepter(void* arg)
       xLOCK(&p->_cr);
       set_client_fd(&p->_client, cfd);
       xUNLOCK(&p->_cr);
-      print_client_fd(&p->_client);
+      //print_client_fd(&p->_client);
       sprintf(cbinfo, "%d:%d.%d.%d.%d:%d",cfd,
               (pc->sin_addr.s_addr&0x000000FF),
               (pc->sin_addr.s_addr&0x0000FF00)>>8,
@@ -224,7 +224,7 @@ void* socket_reader(void* arg)
         xLOCK(&p->_cr);
         clear_client_fd(&p->_client, fd);
         xUNLOCK(&p->_cr);
-        print_client_fd(&p->_client);
+        //print_client_fd(&p->_client);
       }
     }
     p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101A, 0);
