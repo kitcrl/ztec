@@ -80,7 +80,7 @@ void print_client_fd(tagCSocketClient* p)
   for ( i=0 ; i<MAX_CLIENT ; i++ )
   {
     if ( i && ((i%16)==0) ) printf("\r\n");
-    if ( i && ((i%8)==0) ) printf("  ");
+    else if ( i && ((i%8)==0) ) printf("  ");
     printf("  %4d", p->fd[i]);
   }
   printf("\r\n");
@@ -235,6 +235,15 @@ void* socket_reader(void* arg)
     if ( e > 0 )
     {
       p->callback[SOCKET_ON_READ](p->o, fd, b, e, 0, 0);
+    }
+    else
+    {
+      if ( e == 0 )
+      {
+        p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101F, 0);
+        clear_client_fd(&p->_client, fd);
+        print_client_fd(&p->_client);
+      }
     }
     p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101A, 0);
     zDelay(1);
