@@ -68,6 +68,7 @@ typedef struct
   uint32_t _SR_;
   int32_t  fd;
 
+  CRITICAL_SECTION    _cr;
   struct sockaddr_in  _in;
   tagCSocketClient    _client;
 } tagCSocket;
@@ -102,29 +103,6 @@ int32_t set_client_fd(tagCSocketClient* p, int32_t fd)
     }
   }
   return e;
-}
-
-int32_t get_client_fd(tagCSocketClient* p, int32_t fd)
-{
-  int32_t e = -1;
-  int32_t i = 0;
-
-  for ( i=0 ; i<MAX_CLIENT ; i++ )
-  {
-    if ( p->fd[i] == fd )
-    {
-      e = i;
-      break;
-    }
-  }
-
-  return e;
-}
-
-
-int32_t check_client(tagCSocketClient* p, int32_t index)
-{
-  return p->fd[index];
 }
 
 int32_t clear_client_fd(tagCSocketClient* p, int32_t fd)
@@ -275,6 +253,8 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
 
 	if ( WSAStartup(0x202, &wsaData) != 0 ) return 0xE0000001;
 
+  xLOCK_INIT(&p->_cr);
+
   p = *h = (tagCSocket*)calloc(1, sizeof(tagCSocket));
 
   p->callback[SOCKET_ON_STATUS] = callback[SOCKET_ON_STATUS];
@@ -329,6 +309,9 @@ int32_t socket_close(void** h)
     free(*h);
     *h = 0;
   }
+
+  xLOCK_FINAL(&p->_cr);
+
 	WSACleanup();
 
   return e;

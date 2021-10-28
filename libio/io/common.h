@@ -25,6 +25,14 @@ extern "C"
   _endthreadex(a); }
 
 
+#define xLOCK_INIT(crit)       InitializeCriticalSection((CRITICAL_SECTION*)(crit))
+#define xLOCK_FINAL(crit)      DeleteCriticalSection((CRITICAL_SECTION*)(crit));
+#define xLOCK(crit)            EnterCriticalSection((CRITICAL_SECTION*)(crit));
+#define xUNLOCK(crit)          LeaveCriticalSection((CRITICAL_SECTION*)(crit));
+
+
+
+
 #if defined __cplusplus
 }
 #endif
