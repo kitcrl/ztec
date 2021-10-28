@@ -175,7 +175,9 @@ void* socket_accepter(void* arg)
     cfd = accept(p->fd, &client, &csz);
     if ( cfd > 0 )
     {
+      xLOCK(&p->_cr);
       set_client_fd(&p->_client, cfd);
+      xUNLOCK(&p->_cr);
       print_client_fd(&p->_client);
       sprintf(cbinfo, "%d:%d.%d.%d.%d:%d",cfd,
               (pc->sin_addr.s_addr&0x000000FF),
@@ -219,7 +221,9 @@ void* socket_reader(void* arg)
       if ( e == 0 )
       {
         p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101F, 0);
+        xLOCK(&p->_cr);
         clear_client_fd(&p->_client, fd);
+        xUNLOCK(&p->_cr);
         print_client_fd(&p->_client);
       }
     }
