@@ -27,6 +27,7 @@ enum
   * +----+----+ +----+----+ +----+----+ +----+----+
   * +----+----+ +----+----+ +----+----+ +----+----+
      1110 0000   0000 0000    F     D      0    B
+                              F     D      0    F
                               F     D      0    A
                               F     D      B    B
                               F     D      B    A
@@ -43,6 +44,19 @@ enum
 ****/
 
 
+#define MAX_CLIENT       256
+
+
+#pragma pack(1)
+typedef struct
+{
+  fd_set fdset;
+  volatile int32_t fd[MAX_CLIENT];
+} tagCSocketClient;
+#pragma pack()
+
+
+
 #pragma pack(1)
 typedef struct
 {
@@ -55,12 +69,93 @@ typedef struct
   int32_t  fd;
 
   struct sockaddr_in  _in;
-
+  tagCSocketClient    _client;
 } tagCSocket;
 #pragma pack()
 
+void print_client_fd(tagCSocketClient* p)
+{
+  int32_t i = 0;
 
-int32_t   gcfd;
+  for ( i=0 ; i<MAX_CLIENT ; i++ )
+  {
+    if ( i && ((i%16)==0) ) printf("\r\n");
+    if ( i && ((i%8)==0) ) printf("  ");
+    printf("  %4d", p->fd[i]);
+  }
+  printf("\r\n");
+}
+
+
+int32_t set_client_fd(tagCSocketClient* p, int32_t fd)
+{
+  int32_t e = -1;
+  int32_t i = 0;
+
+  for ( i=0 ; i<MAX_CLIENT ; i++ )
+  {
+    if ( p->fd[i] <= 0 )
+    {
+      p->fd[i] = fd;
+      e = i;
+      break;
+    }
+  }
+  return e;
+}
+
+int32_t get_client_fd(tagCSocketClient* p, int32_t fd)
+{
+  int32_t e = -1;
+  int32_t i = 0;
+
+  for ( i=0 ; i<MAX_CLIENT ; i++ )
+  {
+    if ( p->fd[i] == fd )
+    {
+      e = i;
+      break;
+    }
+  }
+
+  return e;
+}
+
+
+int32_t check_client(tagCSocketClient* p, int32_t index)
+{
+  return p->fd[index];
+}
+
+int32_t clear_client_fd(tagCSocketClient* p, int32_t fd)
+{
+  int32_t e = -1;
+  int32_t i = 0;
+
+  for ( i=0 ; i<MAX_CLIENT ; i++ )
+  {
+    if ( fd == -1 )
+    {
+      p->fd[i] = 0;
+      e = i;
+    }
+    else
+    {
+      if ( p->fd[i] == fd )
+      {
+        p->fd[i] = 0;
+        e = i;
+        break;
+      }
+    }
+  }
+
+  return e;
+}
+
+
+
+
 
 __declspec(dllexport)
 int32_t socket_read(void* h, int32_t fd, int8_t* b, int32_t sz)
@@ -102,7 +197,8 @@ void* socket_accepter(void* arg)
     cfd = accept(p->fd, &client, &csz);
     if ( cfd > 0 )
     {
-      gcfd = cfd;
+      set_client_fd(&p->_client, cfd);
+      print_client_fd(&p->_client);
       sprintf(cbinfo, "%d:%d.%d.%d.%d:%d",cfd,
               (pc->sin_addr.s_addr&0x000000FF),
               (pc->sin_addr.s_addr&0x0000FF00)>>8,
@@ -129,13 +225,13 @@ void* socket_reader(void* arg)
   p->_SR_ |= 0x08000000;
   while ( (p->_SR_&0x04000000) == 0x00000000 )
   {
-    p->callback[SOCKET_ON_STATUS](p->o, gcfd, 0, 0, 0xE000101B, 0);
-    e = socket_read(p, gcfd, b, 1024);
+    p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000101B, 0);
+    e = socket_read(p, 0, b, 1024);
     if ( e > 0 )
     {
-      p->callback[SOCKET_ON_READ](p->o, gcfd, b, e, 0, 0);
+      p->callback[SOCKET_ON_READ](p->o, 0, b, e, 0, 0);
     }
-    p->callback[SOCKET_ON_STATUS](p->o, gcfd, 0, 0, 0xE000101A, 0);
+    p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000101A, 0);
     zDelay(1);
   }
   p->_SR_ &= 0xF3FFFFFF;
@@ -173,6 +269,7 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
 
   p->callback[SOCKET_ON_STATUS](p->o, 0, 0, 0, 0xE000FD0B, 0);
   p->fd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+  if ( p->fd <= 0 )   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD0F, 0);
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD0A, 0);
 
   socket_option(p->fd);
@@ -184,6 +281,7 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
 
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBB, 0);
   e = bind(p->fd, (struct sockaddr*)&(p->_in), sizeof(struct sockaddr));
+  if ( e < 0 )   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBF, 0);
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBA, 0);
 
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7B, 0);
