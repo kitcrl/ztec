@@ -257,9 +257,9 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
 
 	if ( WSAStartup(0x202, &wsaData) != 0 ) return 0xE0000001;
 
-  xLOCK_INIT(&p->_cr);
-
   p = *h = (tagCSocket*)calloc(1, sizeof(tagCSocket));
+
+  xLOCK_INIT(&p->_cr);
 
   p->callback[SOCKET_ON_STATUS] = callback[SOCKET_ON_STATUS];
   p->callback[SOCKET_ON_READ]   = callback[SOCKET_ON_READ];
@@ -308,13 +308,14 @@ int32_t socket_close(void** h)
   closesocket(p->fd);
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDCA, 0);
 
+  xLOCK_FINAL(&p->_cr);
+
   if ( *h )
   {
     free(*h);
     *h = 0;
   }
 
-  xLOCK_FINAL(&p->_cr);
 
 	WSACleanup();
 
