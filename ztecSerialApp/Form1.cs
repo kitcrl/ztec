@@ -11,10 +11,11 @@ using System.Windows.Forms;
 
 namespace ztecSerialApp
 {
-  public partial class Form1 : Form, kr.co.ztec.io.ISerial
+  public partial class Form1 : Form, kr.co.ztec.io.ISerial, kr.co.ztec.io.ISocket
   {
 
     kr.co.ztec.io.Serial _serial;
+    kr.co.ztec.io.Socket _socket;
 
     public Form1()
     {
@@ -29,6 +30,10 @@ namespace ztecSerialApp
       this.m_btnClear.Text = "CLEAR";
 
       _serial = new kr.co.ztec.io.Serial(this);
+
+
+      this.m_btnSocketOpen.Text = "OPEN";
+      _socket = new kr.co.ztec.io.Socket(this);
     }
     private void m_btnOpen_Click(object sender, EventArgs e)
     {
@@ -64,6 +69,37 @@ namespace ztecSerialApp
 
 
       return e;
+    }
+
+    private void btnSocketOpen_Click(object sender, EventArgs e)
+    {
+      if (this.m_btnSocketOpen.Text == "OPEN")
+      {
+        if (this._socket.Open(
+                  this.m_txtIP.Text,
+                  this.m_txtSocketPort.Text,
+                  "SERVER",
+                  "TCP",
+                  "UNICAST") > 0)
+        {
+          this.m_btnSocketOpen.Text = "CLOSE";
+        }
+
+      }
+      else
+      {
+        this.m_btnSocketOpen.Text = "OPEN";
+      }
+    }
+
+    public int Read(int fd, byte[] b, int sz, int err)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Status(int fd, byte[] b, int sz, int err)
+    {
+      throw new NotImplementedException();
     }
   }
 }

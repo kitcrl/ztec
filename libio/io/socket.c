@@ -361,6 +361,11 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
   uint32_t thr;
   tagCSocket sck = {0};
 
+
+	if ( WSAStartup(0x202, &wsaData) != 0 ) return 0xE0000001;
+
+  p = *h = (tagCSocket*)calloc(1, sizeof(tagCSocket));
+
   if ( *cstype=='S' || *cstype=='s' ) p->_SR_|=0x00800000;
   if ( *protocol=='U' || *protocol=='u' ) p->_SR_|=0x00400000;
   if ( *casttype=='B' || *casttype=='b' ) p->_SR_|=0x00300000;
@@ -368,9 +373,6 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
   else if ( *casttype=='R' || *casttype=='r' ) p->_SR_|=0x00100000;
 
 
-	if ( WSAStartup(0x202, &wsaData) != 0 ) return 0xE0000001;
-
-  p = *h = (tagCSocket*)calloc(1, sizeof(tagCSocket));
 
   xLOCK_INIT(&p->_cr);
 
@@ -415,7 +417,7 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
   zTHREAD_CREATE(socket_reader, p, &p->_tid[1], p->_thr[1]);
   while ( 1 ) if( (p->_SR_&0x08000000) == 0x08000000 ) break;
 
-  return e;
+  return e<0?e:p->fd;
 }
 
 
