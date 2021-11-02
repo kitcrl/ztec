@@ -418,6 +418,8 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
   return e;
 }
 
+
+
 __declspec(dllexport)
 int32_t socket_close(void** h)
 {
