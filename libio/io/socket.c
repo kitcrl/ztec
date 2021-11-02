@@ -13,7 +13,16 @@ enum
 /****
   * +----+----+ +----+----+ +----+----+ +----+----+
   * +----+----+ +----+----+ +----+----+ +----+----+
-  *  ^^   ^^
+  *  ^^   ^^     ^^^^
+  *  ||   ||     ||||
+  *  ||   ||     ||||
+  *  ||   ||     ||||
+  *  ||   ||     ||||
+  *  ||   ||     ||||
+  *  ||   ||     ||++----------------------------------- 11 : BROADCAST, 10 : MULTICAST, 00 : UNICAST, 01 : RAW
+  *  ||   ||     ||
+  *  ||   ||     |+------------------------------------- 1 : UDP,     0 : TCP
+  *  ||   ||     +-------------------------------------- 1 : SERVER,  0 : CLIENT
   *  ||   ||
   *  ||   |+-------------------------------------------- 1 : Reader Stop Request
   *  ||   +--------------------------------------------- 1 : Reader in Thread
@@ -155,6 +164,57 @@ int32_t socket_write(void* h, int32_t fd, int8_t* b, int32_t sz)
   return e;
 }
 
+__declspec(dllexport)
+int32_t socket_readfrom(void* h, int32_t fd, int8_t* b, int32_t sz, struct sockaddr_in* addr)
+{
+  int32_t e = 0;
+  int32_t l = sizeof(struct sockaddr_in);
+
+  e = recvfrom(fd, b, sz, 0, (struct sockaddr*)addr,&l);
+
+  return e;
+}
+
+__declspec(dllexport)
+int32_t socket_writeto(void* h, int32_t fd, int8_t* b, int32_t sz, struct sockaddr_in* addr)
+{
+  int32_t e = 0;
+  int32_t l = sizeof(struct sockaddr_in);
+
+  e = sendto(fd, b, sz, 0, (struct sockaddr*)addr, &l);
+
+  return e;
+}
+
+int32_t connection_status(int32_t fd, int32_t timeout)
+{
+  int32_t        e=0;
+  fd_set         rset, wset;
+  struct timeval tval={0};
+  int32_t        optval;
+  uint32_t       optlen;
+
+  FD_ZERO(&rset);
+  FD_SET(fd, &rset);
+  wset = rset;
+  tval.tv_sec = 0;
+  tval.tv_usec = timeout*1000;
+  
+  // wait connect for a specified timeout
+  e = select(fd+1,&rset,&wset,0, &tval);
+  if ( e )
+  {
+    optlen = sizeof(optval);
+    getsockopt(fd, SOL_SOCKET, SO_ERROR, (int8_t *)&optval, &optlen);
+    if ( optval == 0 ) e = 0;
+    else e = 0xE000FD0F;
+  }
+  else
+  {
+    e = 0xE000FD0F;
+  }
+  return e;
+}
 
 
 void* socket_accepter(void* arg)
@@ -195,16 +255,43 @@ void* socket_accepter(void* arg)
 }
 
 
+void* __socket_reader_c(tagCSocket* p)
+{
+  int32_t i = 0;
+  int32_t e = 0;
+  int8_t b[1024] = {0};
 
-void* socket_reader(void* arg)
+
+  e = connection_status(p->fd, 4000);
+  if ( e < 0 ) return e;
+
+  while ( (p->_SR_&0x04000000) == 0x00000000 )
+  {
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000101B, 0);
+    e = socket_read(p, p->fd, b, 1024);
+    if ( e > 0 )
+    {
+      p->callback[SOCKET_ON_READ](p->o, p->fd, b, e, 0, 0);
+    }
+    else
+    {
+      if ( e == 0 )
+      {
+        p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000101F, 0);
+      }
+    }
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000101A, 0);
+    zDelay(1);
+  }
+}
+
+void* __socket_reader_d(tagCSocket* p)
 {
   int32_t i = 0;
   int32_t e = 0;
   int32_t fd = 0;
   int8_t b[1024] = {0};
-  tagCSocket* p = (tagCSocket*)arg;
 
-  p->_SR_ |= 0x08000000;
   while ( (p->_SR_&0x04000000) == 0x00000000 )
   {
     fd = p->_client.fd[i];
@@ -230,6 +317,23 @@ void* socket_reader(void* arg)
     p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101A, 0);
     zDelay(1);
   }
+}
+
+
+
+void* socket_reader(void* arg)
+{
+  tagCSocket* p = (tagCSocket*)arg;
+
+  p->_SR_ |= 0x08000000;
+  if ( p->_SR_&0x00800000 )
+  {
+    __socket_reader_d(p);
+  }
+  else
+  {
+    __socket_reader_c(p);
+  }
   p->_SR_ &= 0xF3FFFFFF;
   CloseHandle(p->_thr[1]);
   return 0;
@@ -244,9 +348,11 @@ int32_t socket_option(int32_t fd)
 }
 
 __declspec(dllexport)
-int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_t,int32_t,void*), void* o)
+int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* protocol, int8_t* casttype, int32_t (*callback[])(void*,int32_t,int8_t*,int32_t,int32_t,void*), void* o)
 {
   int32_t e = 0;
+  uint32_t _ip = inet_addr(ip);
+  uint16_t _port = atoi(port);
 	WSADATA wsaData = {0};
   tagCSocket* p = 0;
 
@@ -254,6 +360,13 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
   uint32_t tid;
   uint32_t thr;
   tagCSocket sck = {0};
+
+  if ( *cstype=='S' || *cstype=='s' ) p->_SR_|=0x00800000;
+  if ( *protocol=='U' || *protocol=='u' ) p->_SR_|=0x00400000;
+  if ( *casttype=='B' || *casttype=='b' ) p->_SR_|=0x00300000;
+  else if ( *casttype=='M' || *casttype=='m' ) p->_SR_|=0x00200000;
+  else if ( *casttype=='R' || *casttype=='r' ) p->_SR_|=0x00100000;
+
 
 	if ( WSAStartup(0x202, &wsaData) != 0 ) return 0xE0000001;
 
@@ -272,24 +385,35 @@ int32_t socket_open(void** h, int32_t (*callback[])(void*,int32_t,int8_t*,int32_
 
   socket_option(p->fd);
 
+
   p->_in.sin_family = AF_INET;
-  p->_in.sin_addr.s_addr = htonl(INADDR_ANY);
-  p->_in.sin_port = htons(7810);
+  p->_in.sin_port = htons(_port);
 
+  if ( p->_SR_&0x00800000 )
+  {
+    p->_in.sin_addr.s_addr = htonl(INADDR_ANY);
 
-  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBB, 0);
-  e = bind(p->fd, (struct sockaddr*)&(p->_in), sizeof(struct sockaddr));
-  if ( e < 0 )   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBF, 0);
-  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBA, 0);
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBB, 0);
+    e = bind(p->fd, (struct sockaddr*)&(p->_in), sizeof(struct sockaddr));
+    if ( e < 0 )   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBF, 0);
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDBA, 0);
 
-  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7B, 0);
-  listen(p->fd, 5);
-  p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7A, 0);
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7B, 0);
+    listen(p->fd, 5);
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7A, 0);
 
-  ////// create thread
-  zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
+    ////// create thread
+    zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
+    while ( 1 ) if( (p->_SR_&0x80000000) == 0x80000000 ) break;
+  }
+  else
+  {
+    p->_in.sin_addr.s_addr = _ip;
+    e = connect(p->fd, (struct sockaddr*)&p->_in, sizeof(p->_in));
+  }
+
   zTHREAD_CREATE(socket_reader, p, &p->_tid[1], p->_thr[1]);
-  while ( 1 ) if( (p->_SR_&0x88000000) == 0x88000000 ) break;
+  while ( 1 ) if( (p->_SR_&0x08000000) == 0x08000000 ) break;
 
   return e;
 }

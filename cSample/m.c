@@ -12,7 +12,7 @@ typedef struct
   int32_t (*serial_read)(void*, int32_t fd, int8_t* b, int32_t sz);
   int32_t (*serial_write)(void*, int32_t fd, int8_t* b, int32_t sz);
 
-  int32_t (*socket_open)(void**);
+  int32_t (*socket_open)(void**, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* protocol, int8_t* casttype, int32_t (*callback[])(void*,int32_t,int8_t*,int32_t,int32_t,void*), void* o);
   int32_t (*socket_close)(void**);
 
   int32_t (*socket_callback[2])(void* h, int32_t fd, int8_t* b, int32_t sz, int32_t err, void* o);
@@ -88,7 +88,7 @@ void main()
 
   _io.socket_callback[0] = on_socket_status;
   _io.socket_callback[1] = on_socket_read;
-  _io.socket_open(&_io.hSocket, _io.socket_callback, &_io);
+  _io.socket_open(&_io.hSocket, "127.0.0.1", "7810", "CLIENT", "TCP", "UNICAST", _io.socket_callback, &_io);
 
 
   printf("Press Any Key to Close ......\r\n");
