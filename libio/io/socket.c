@@ -401,7 +401,7 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
   p->_in.sin_family = AF_INET;
   p->_in.sin_port = htons(_port);
 
-  if ( p->_SR_&0x00800000 )
+  if ( xCHECK_SEMAPHORE(p->_SR_,0x00800000,0x00800000) )
   {
     p->_in.sin_addr.s_addr = htonl(INADDR_ANY);
 
@@ -416,18 +416,7 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
 
     ////// create thread
     zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
-    xGET_SEMAPHORE(p->_SR_,0x80000000,0x80000000,5000,c);
-
-
-    zDelay(5000);
-
-    //xSET_SEMAPHORE(p->_SR_,0x40000000,0x40000000);
-
-    xGET_SEMAPHORE(p->_SR_,0x00000000,0xC0000000,5000,c);
-    
-
-
-    //while ( 1 ) if( (p->_SR_&0x80000000) == 0x80000000 ) break;
+    xGET_SEMAPHORE(p->_SR_,0x80000000,0x80000000,500,c);
   }
   else
   {
@@ -436,7 +425,7 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
   }
 
   zTHREAD_CREATE(socket_reader, p, &p->_tid[1], p->_thr[1]);
-  while ( 1 ) if( (p->_SR_&0x08000000) == 0x08000000 ) break;
+  xGET_SEMAPHORE(p->_SR_,0x08000000,0x08000000,500,c);
 
   return e<0?e:p->fd;
 }
