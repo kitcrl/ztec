@@ -236,7 +236,7 @@ void* socket_accepter(void* arg)
   tagCSocket* p = (tagCSocket*)arg;
 
   xSET_SEMAPHORE(p->_SR_, 0x80000000, 0x80000000);
-  while ( xCHECK_SEMAPHORE(p->_SR_,0x00000000, 0x40000000) )
+  while ( xCHECK_SEMAPHORE(p->_SR_,0x40000000, 0x40000000) )
   {
     p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDAB, 0);
     cfd = accept(p->fd, &client, &csz);
@@ -421,7 +421,7 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
 
     zDelay(5000);
 
-    xSET_SEMAPHORE(p->_SR_,0x00000000,0x40000000);
+    xSET_SEMAPHORE(p->_SR_,0x40000000,0x40000000);
 
     xGET_SEMAPHORE(p->_SR_,0x00000000,0xC0000000,5000,c);
     
