@@ -31,6 +31,10 @@ extern "C"
 #define xUNLOCK(crit)          LeaveCriticalSection((CRITICAL_SECTION*)(crit));
 
 
+#define xSET_SEMAPHORE(SR,v,chk)              ((v&chk)?(SR|=v):(SR&=~chk))
+#define xCHECK_SEMAPHORE(SR,v,chk)            ((SR&chk)==v)
+#define xGET_SEMAPHORE(SR,v,chk,counter,c)    for( c=counter; c>0 ; c--, zDelay(1) ) if ( (SR&chk)==v ) break;
+
 
 
 #if defined __cplusplus
