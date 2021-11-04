@@ -33,7 +33,7 @@ extern "C"
 
 #define xSET_SEMAPHORE(SR,v,chk)              ((v&chk)?(SR|=v):(SR&=~chk))
 #define xCHECK_SEMAPHORE(SR,v,chk)            ((SR&chk)==v)
-#define xGET_SEMAPHORE(SR,v,chk,counter,c)    for( c=counter; c>0 ; c--, zDelay(1) ) if ( (SR&chk)==v ) break;
+#define xGET_SEMAPHORE(SR,v,chk,counter,c)    for( c=counter; c>=0 ; c--, zDelay(1) ) if ( ((SR&chk)==v) || (c==0) ) break;
 
 
 
