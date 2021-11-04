@@ -94,12 +94,12 @@ namespace ztecSerialApp
 
     public int Read(int fd, byte[] b, int sz, int err)
     {
-      throw new NotImplementedException();
+      return 0;
     }
 
     public int Status(int fd, byte[] b, int sz, int err)
     {
-      throw new NotImplementedException();
+      return 0;
     }
   }
 }

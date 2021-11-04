@@ -257,7 +257,8 @@ void* socket_accepter(void* arg)
     p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDA0, cfd>0?cbinfo:0);
     zDelay(1);
   }
-  xSET_SEMAPHORE(p->_SR_, 0x0000000000, 0xC0000000 );
+  zDelay(1000);
+  xSET_SEMAPHORE(p->_SR_, 0x00000000, 0xC0000000 );
   //p->_SR_ &= 0x3FFFFFFF;
   CloseHandle(p->_thr[0]);
   return 0;
@@ -369,7 +370,7 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
   uint32_t tid;
   uint32_t thr;
   tagCSocket sck = {0};
-
+  uint32_t c = 0;
 
 	if ( WSAStartup(0x202, &wsaData) != 0 ) return 0xE0000001;
 
@@ -415,7 +416,15 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
 
     ////// create thread
     zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
-    while ( 1 ) if( (p->_SR_&0x80000000) == 0x80000000 ) break;
+    xGET_SEMAPHORE(p->_SR_,0x80000000,0x80000000,5000,c);
+
+    xSET_SEMAPHORE(p->_SR_,0x00000000,0x80000000);
+
+    xGET_SEMAPHORE(p->_SR_,0x00000000,0x80000000,5000,c);
+    
+
+
+    //while ( 1 ) if( (p->_SR_&0x80000000) == 0x80000000 ) break;
   }
   else
   {
