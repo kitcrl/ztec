@@ -418,9 +418,12 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
     zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
     xGET_SEMAPHORE(p->_SR_,0x80000000,0x80000000,5000,c);
 
-    xSET_SEMAPHORE(p->_SR_,0x00000000,0x80000000);
 
-    xGET_SEMAPHORE(p->_SR_,0x00000000,0x80000000,5000,c);
+    zDelay(5000);
+
+    xSET_SEMAPHORE(p->_SR_,0x00000000,0x40000000);
+
+    xGET_SEMAPHORE(p->_SR_,0x00000000,0xC0000000,5000,c);
     
 
 
