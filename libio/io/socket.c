@@ -274,8 +274,8 @@ void* __socket_reader_c(tagCSocket* p)
 
   e = connection_status(p->fd, 4000);
   if ( e < 0 ) return e;
-
-  while ( (p->_SR_&0x04000000) == 0x00000000 )
+ 
+  while ( xCHECK_SEMAPHORE(p->_SR_,0x00000000, 0x04000000) )
   {
     p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000101B, 0);
     e = socket_read(p, p->fd, b, 1024);
@@ -302,7 +302,7 @@ void* __socket_reader_d(tagCSocket* p)
   int32_t fd = 0;
   int8_t b[1024] = {0};
 
-  while ( (p->_SR_&0x04000000) == 0x00000000 )
+  while ( xCHECK_SEMAPHORE(p->_SR_,0x00000000, 0x40000000) )
   {
     fd = p->_client.fd[i];
     i = ((++i)%MAX_CLIENT);
@@ -335,8 +335,8 @@ void* socket_reader(void* arg)
 {
   tagCSocket* p = (tagCSocket*)arg;
 
-  p->_SR_ |= 0x08000000;
-  if ( p->_SR_&0x00800000 )
+  xSET_SEMAPHORE(p->_SR_, 0x08000000, 0x08000000);
+  if ( xCHECK_SEMAPHORE(p->_SR_,0x00800000, 0x00800000) )
   {
     __socket_reader_d(p);
   }
@@ -344,7 +344,7 @@ void* socket_reader(void* arg)
   {
     __socket_reader_c(p);
   }
-  p->_SR_ &= 0xF3FFFFFF;
+  xSET_SEMAPHORE(p->_SR_, 0x00000000, 0x0C000000 );
   CloseHandle(p->_thr[1]);
   return 0;
 }
@@ -376,13 +376,11 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
 
   p = *h = (tagCSocket*)calloc(1, sizeof(tagCSocket));
 
-  if ( *cstype=='S' || *cstype=='s' ) p->_SR_|=0x00800000;
-  if ( *protocol=='U' || *protocol=='u' ) p->_SR_|=0x00400000;
-  if ( *casttype=='B' || *casttype=='b' ) p->_SR_|=0x00300000;
-  else if ( *casttype=='M' || *casttype=='m' ) p->_SR_|=0x00200000;
-  else if ( *casttype=='R' || *casttype=='r' ) p->_SR_|=0x00100000;
-
-
+  if ( *cstype=='S' || *cstype=='s' ) xSET_SEMAPHORE(p->_SR_,0x00800000,0x00800000);
+  if ( *protocol=='U' || *protocol=='u' ) xSET_SEMAPHORE(p->_SR_,0x00400000,0x00400000);
+  if ( *casttype=='B' || *casttype=='b' ) xSET_SEMAPHORE(p->_SR_,0x00300000,0x00300000);
+  else if ( *casttype=='M' || *casttype=='m' ) xSET_SEMAPHORE(p->_SR_,0x00200000,0x00200000);
+  else if ( *casttype=='R' || *casttype=='r' ) xSET_SEMAPHORE(p->_SR_,0x00100000,0x00100000);
 
   xLOCK_INIT(&p->_cr);
 
@@ -396,7 +394,6 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD0A, 0);
 
   socket_option(p->fd);
-
 
   p->_in.sin_family = AF_INET;
   p->_in.sin_port = htons(_port);
@@ -415,8 +412,8 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
     p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FD7A, 0);
 
     ////// create thread
-    zTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
-    xGET_SEMAPHORE(p->_SR_,0x80000000,0x80000000,500,c);
+    xTHREAD_CREATE(socket_accepter, p, &p->_tid[0], p->_thr[0]);
+    xGET_SEMAPHORE(p->_SR_,0x80000000,0x80000000,500);
   }
   else
   {
@@ -424,8 +421,8 @@ int32_t socket_open(void** h, int8_t* ip, int8_t* port, int8_t* cstype, int8_t* 
     e = connect(p->fd, (struct sockaddr*)&p->_in, sizeof(p->_in));
   }
 
-  zTHREAD_CREATE(socket_reader, p, &p->_tid[1], p->_thr[1]);
-  xGET_SEMAPHORE(p->_SR_,0x08000000,0x08000000,500,c);
+  xTHREAD_CREATE(socket_reader, p, &p->_tid[1], p->_thr[1]);
+  xGET_SEMAPHORE(p->_SR_,0x08000000,0x08000000,500);
 
   return e<0?e:p->fd;
 }
@@ -438,8 +435,9 @@ int32_t socket_close(void** h)
   int32_t e = 0;
   tagCSocket* p = (tagCSocket*)(*h);
 
-  p->_SR_|=0x44000000;
-  while ( 1 ) if ( (p->_SR_&0xCC000000) == 0x00000000 ) break;
+
+  xSET_SEMAPHORE(p->_SR_,0x44000000,0x44000000);
+  xGET_SEMAPHORE(p->_SR_,0x00000000,0xCC000000,500);
 
   p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDCB, 0);
   shutdown(p->fd, SD_BOTH);

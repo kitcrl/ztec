@@ -13,13 +13,13 @@ extern "C"
 
 #define zDelay(ms)      Sleep(ms)
 
-#define zTHREAD_CREATE(f,arg,id,r) \
+#define xTHREAD_CREATE(f,arg,id,r) \
 ( r = _beginthreadex \
               (0,0,(uint32_t(__stdcall*)(void*))f, \
               (void*)arg, 0, (uint32_t*)id ) ) 
 
 
-#define zTHREAD_EXIT(a,r) \
+#define xTHREAD_EXIT(a,r) \
 { \
   if (r) CloseHandle(r); \
   _endthreadex(a); }
@@ -33,8 +33,9 @@ extern "C"
 
 #define xSET_SEMAPHORE(SR,v,chk)              ((v&chk)?(SR|=v):(SR&=~chk))
 #define xCHECK_SEMAPHORE(SR,v,chk)            ((SR&chk)==v)
-#define xGET_SEMAPHORE(SR,v,chk,counter,c)    \
+#define xGET_SEMAPHORE(SR,v,chk,counter)    \
 { \
+  int32_t c; \
   for( c=counter; c>=0 ; c-- ) \
   { \
     if ( ((SR&chk)==v) || (c==0) ) break; \

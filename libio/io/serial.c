@@ -57,8 +57,8 @@ void* serial_reader(void* arg)
   int32_t e = 0;
   int8_t b[32] = {0};
   tagCSerial* p = (tagCSerial*)arg;
-  p->_SR_ |= 0x80000000;
-  while ( (p->_SR_&0x00000001) == 0x00000000 )
+  xSET_SEMAPHORE(p->_SR_, 0x80000000, 0x80000000);
+  while ( xCHECK_SEMAPHORE(p->_SR_, 0x40000000, 0x40000000) )
   {
     e = serial_read(p, p->fd, b, 32);
     if ( e > 0 )
@@ -79,7 +79,7 @@ void* serial_reader(void* arg)
     }
     zDelay(1);
   }
-  p->_SR_ &= 0x7FFFFFFE;
+  xSET_SEMAPHORE(p->_SR_, 0x00000000, 0xC0000000);
   CloseHandle(p->_thr);
   return 0;
 }
@@ -152,8 +152,8 @@ int32_t serial_open(void** h, int8_t* port, int8_t* baudrate, int8_t* databit, i
   p->on_serial_read = f;
   p->o = o;
 
-  zTHREAD_CREATE(serial_reader, p, &p->_tid, p->_thr);
-  while ( (p->_SR_&0x80000000) == 0x00000000 );
+  xTHREAD_CREATE(serial_reader, p, &p->_tid, p->_thr);
+  xGET_SEMAPHORE(p->_SR_, 0x80000000, 0x80000000, 500);
 
   return e;
 }
@@ -165,11 +165,8 @@ int32_t serial_close(void** h, int32_t fd)
   tagCSerial* p = 0;
   p = (tagCSerial*)(*h);
 
-  p->_SR_|=0x00000001;
-  while ( 1 )
-  {
-    if ( (p->_SR_&0x80000001) == 0x00000000 ) break;
-  }
+  xSET_SEMAPHORE(p->_SR_,0x40000000,0x40000000);
+  xGET_SEMAPHORE(p->_SR_,0x00000000,0xC0000000,500);
   dev_close(fd);
 
 
