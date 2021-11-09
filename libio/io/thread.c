@@ -21,12 +21,12 @@ void* _thread(void* arg)
   tagCThread* p;
   p = (tagCThread*)arg;
 
-  xSET_SEMAPHORE(p->_SR_, p->id, p->id);
-  while ( xCHECK_SEMAPHORE(p->_SR_, 0, (p->id)>>1) )
+  xSET_SEMAPHORE(p->_SR_, 0x80000000, 0x80000000);
+  while ( xCHECK_SEMAPHORE(p->_SR_, 0, 0x40000000) )
   {
     p->f(p->o);
   }
-  xSET_SEMAPHORE(p->_SR_, 0, p->id|((p->id)>>1));
+  xSET_SEMAPHORE(p->_SR_, 0, 0xC0000000);
   return 0;
 }
 
@@ -37,8 +37,11 @@ int32_t thread_stop(void** hdl)
   tagCThread* p;
   p = (tagCThread*)hdl;
 
-  xSET_SEMAPHORE(p->_SR_, (p->id)>>1, (p->id)>>1);
-  xGET_SEMAPHORE(p->_SR_, 0, p->id|((p->id)>>1), 500);
+  xSET_SEMAPHORE(p->_SR_, 0x40000000, 0x40000000);
+  xGET_SEMAPHORE(p->_SR_, 0,0xC0000000, 500);
+
+  free(*hdl);
+  *hdl = 0;
 
   return 0;
 }
@@ -46,15 +49,14 @@ int32_t thread_stop(void** hdl)
 
 
 __declspec(dllexport)
-int32_t thread(void** hdl, void* (*f)(void*), void* arg, uint32_t id)
+int32_t thread(void** hdl, void* (*f)(void*), void* arg)
 {
   tagCThread* p;
   p = *hdl = (struct tagCThread*)calloc(1, sizeof(tagCThread));
-  p->id = id;
   p->o = arg;
   p->f = f;
   xTHREAD_CREATE(_thread, p, &p->_tid, p->_h);
-  xGET_SEMAPHORE(p->_SR_, p->id, p->id, 500);
+  xGET_SEMAPHORE(p->_SR_, 0x80000000, 0x80000000, 500);
 
   
   return hdl;
