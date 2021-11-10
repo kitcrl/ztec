@@ -77,10 +77,12 @@ namespace ztecWApp
       // 
       // hsbA
       // 
+      this.hsbA.LargeChange = 1;
       this.hsbA.Location = new System.Drawing.Point(12, 191);
       this.hsbA.Maximum = 255;
       this.hsbA.Name = "hsbA";
       this.hsbA.Size = new System.Drawing.Size(328, 21);
+      this.hsbA.SmallChange = 0;
       this.hsbA.TabIndex = 2;
       this.hsbA.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hsbA_Scroll);
       // 
@@ -100,6 +102,7 @@ namespace ztecWApp
       this._txtR.Size = new System.Drawing.Size(100, 20);
       this._txtR.TabIndex = 3;
       this._txtR.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+      this._txtR.TextChanged += new System.EventHandler(this._txtR_TextChanged);
       // 
       // _txtG
       // 
@@ -108,6 +111,7 @@ namespace ztecWApp
       this._txtG.Size = new System.Drawing.Size(100, 20);
       this._txtG.TabIndex = 3;
       this._txtG.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+      this._txtG.TextChanged += new System.EventHandler(this._txtG_TextChanged);
       // 
       // _txtB
       // 
@@ -116,6 +120,7 @@ namespace ztecWApp
       this._txtB.Size = new System.Drawing.Size(100, 20);
       this._txtB.TabIndex = 3;
       this._txtB.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+      this._txtB.TextChanged += new System.EventHandler(this._txtB_TextChanged);
       // 
       // Form1
       // 
