@@ -26,8 +26,6 @@ typedef struct
 } tagCSerial;
 #pragma pack()
 
-
-
 __declspec(dllexport)
 int32_t serial_read(void* h, int32_t fd, int8_t* b, int32_t sz)
 {
