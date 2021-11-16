@@ -126,7 +126,7 @@ namespace ztecWApp
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(455, 329);
+      this.ClientSize = new System.Drawing.Size(465, 326);
       this.Controls.Add(this._txtB);
       this.Controls.Add(this._txtG);
       this.Controls.Add(this._txtR);
