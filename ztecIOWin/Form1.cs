@@ -33,8 +33,13 @@ namespace ztecIOWin
       this.cbxCSType.Items.Add("SERVER");
       this.cbxCSType.Items.Add("CLIENT");
       this.cbxCSType.SelectedIndex = 0;
-
       this.btnOpen.Text = "Open";
+
+
+      this.lvRead.CreateColumn(2);
+      this.lvRead.ColumnHeaderText(0, "no", 30);
+      this.lvRead.ColumnHeaderText(1, "log", 600);
+
       tcpd = new zTCPd(this);
     }
 
@@ -66,8 +71,7 @@ namespace ztecIOWin
     {
       if (type == 0)
       {
-        
-        this.lvRead.Items.Add(msg);
+        this.lvRead.InsertText(msg);
       }
       return 0;
     }
