@@ -252,9 +252,9 @@ void* socket_accepter(void* arg)
               (pc->sin_addr.s_addr&0x00FF0000)>>16,
               (pc->sin_addr.s_addr&0xFF000000)>>24,
               htons(pc->sin_port));
-      p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDAA, cfd>0?cbinfo:0);
+      p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDA0, cfd>0?cbinfo:0);
     }
-    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDA0, cfd>0?cbinfo:0);
+    p->callback[SOCKET_ON_STATUS](p->o, p->fd, 0, 0, 0xE000FDAA, cfd>0?cbinfo:0);
     zDelay(1);
   }
   zDelay(1000);

@@ -8,7 +8,7 @@ namespace ztecIOWin
 {
   public interface INet
   {
-    Int32 OnRead(Int32 fd, byte[] b, Int32 sz, Int32 err);
-    Int32 OnStatus(Int32 fd, byte[] b, Int32 sz, Int32 err);
+    Int32 OnRead(Int32 fd, byte[] b, Int32 sz, UInt32 err);
+    Int32 OnStatus(Int32 fd, byte[] b, Int32 sz, UInt32 err);
   }
 }

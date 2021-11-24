@@ -28,7 +28,7 @@ namespace ztecIOWin
     }
 
 
-    public int Read(int fd, byte[] b, int sz, int err)
+    public int Read(int fd, byte[] b, int sz, UInt32 err)
     {
       int e = 0;
 
@@ -37,7 +37,7 @@ namespace ztecIOWin
       return e;
     }
 
-    public int Status(int fd, byte[] b, int sz, int err)
+    public int Status(int fd, byte[] b, int sz, UInt32 err)
     {
       int e = 0;
       e = _inet.OnStatus(fd, b, sz, err);

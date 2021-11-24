@@ -12,7 +12,11 @@ namespace ztecIOWin
 {
   public partial class Form1 : Form, INet
   {
+
+    public delegate Int32 OnCallback(UInt32 type, string msg);
+
     zTCPd tcpd;
+    OnCallback onCallback;
     public Form1()
     {
       InitializeComponent();
@@ -21,6 +25,9 @@ namespace ztecIOWin
 
     public void InitComponent()
     {
+
+      onCallback = new OnCallback(_Callback);
+
       this.txtPort.Text = "9000";
 
       this.cbxCSType.Items.Add("SERVER");
@@ -31,15 +38,19 @@ namespace ztecIOWin
       tcpd = new zTCPd(this);
     }
 
-    public int OnRead(int fd, byte[] b, int sz, int err)
+    public int OnRead(int fd, byte[] b, int sz, UInt32 err)
     {
       return 0;
     }
 
-    public int OnStatus(int fd, byte[] b, int sz, int err)
+    public int OnStatus(int fd, byte[] b, int sz, UInt32 err)
     {
       string item = string.Format("Status {0:d04} {1:d4} {2:X08}\r\n", fd, sz, err);
-      //this.lvRead.Items.Add(item);
+
+      if (err != 0xE000FDAB && err != 0xE000FDAA)
+      {
+        this.Invoke(onCallback, (UInt32)0, item);
+      }
       return 0;
     }
 
@@ -50,7 +61,16 @@ namespace ztecIOWin
       {
         this.btnOpen.Text = "Close";
       }
-
     }
+    public Int32 _Callback(UInt32 type, string msg)
+    {
+      if (type == 0)
+      {
+        
+        this.lvRead.Items.Add(msg);
+      }
+      return 0;
+    }
+
   }
 }

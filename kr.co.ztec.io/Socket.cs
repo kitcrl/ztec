@@ -5,10 +5,10 @@ namespace kr.co.ztec.io
 {
   unsafe public partial class Socket
   {
-    private delegate Int32 OnCallback(Int32 fd, byte[] b, Int32 sz, Int32 err);
+    private delegate Int32 OnCallback(Int32 fd, byte[] b, Int32 sz, UInt32 err);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate Int32 DlgtOnCallback(void* h, Int32 fd, byte* b, Int32 sz, Int32 err, void* o);
+    private delegate Int32 DlgtOnCallback(void* h, Int32 fd, byte* b, Int32 sz, UInt32 err, void* o);
 
     [DllImport("libio.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
     private static extern Int32 socket_open(out void* h, byte* ip, byte* port, byte* cstype, byte* protocol, byte* casttype, UInt32[] dlgt, void* o);
@@ -97,7 +97,7 @@ namespace kr.co.ztec.io
       return e;
     }
 
-    private Int32 onRead(void* h, Int32 fd, byte* b, Int32 sz, Int32 err, void* o)
+    private Int32 onRead(void* h, Int32 fd, byte* b, Int32 sz, UInt32 err, void* o)
     {
       Int32 e = 0;
       byte[] _b = new byte[sz];
@@ -109,7 +109,7 @@ namespace kr.co.ztec.io
       return e;
     }
 
-    private Int32 onStatus(void* h, Int32 fd, byte* b, Int32 sz, Int32 err, void* o)
+    private Int32 onStatus(void* h, Int32 fd, byte* b, Int32 sz, UInt32 err, void* o)
     {
       Int32 e = 0;
 
@@ -124,14 +124,14 @@ namespace kr.co.ztec.io
 
 
 
-    private Int32 dlgtRead(Int32 fd, byte[] b, Int32 sz, Int32 err)
+    private Int32 dlgtRead(Int32 fd, byte[] b, Int32 sz, UInt32 err)
     {
       Int32 e = 0;
       e = _isck.Read(fd, b, sz, err);
       return e;
     }
 
-    private Int32 dlgtStatus(Int32 fd, byte[] b, Int32 sz, Int32 err)
+    private Int32 dlgtStatus(Int32 fd, byte[] b, Int32 sz, UInt32 err)
     {
       Int32 e = 0;
       e = _isck.Status(fd, b, sz, err);

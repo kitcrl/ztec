@@ -40,12 +40,15 @@ namespace ztecIOWin
       // 
       // lvRead
       // 
+      this.lvRead.GridLines = true;
       this.lvRead.HideSelection = false;
       this.lvRead.Location = new System.Drawing.Point(12, 64);
+      this.lvRead.MultiSelect = false;
       this.lvRead.Name = "lvRead";
       this.lvRead.Size = new System.Drawing.Size(534, 285);
       this.lvRead.TabIndex = 0;
       this.lvRead.UseCompatibleStateImageBehavior = false;
+      this.lvRead.View = System.Windows.Forms.View.Details;
       // 
       // txtIP
       // 
