@@ -157,6 +157,7 @@ copy /y $(ProjectDir)\io\*.h $(SolutionDir)\out</Command>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="io\common.c" />
     <ClCompile Include="io\serial.c" />
     <ClCompile Include="io\socket.c" />
     <ClCompile Include="io\thread.c" />

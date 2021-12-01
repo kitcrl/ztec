@@ -15,6 +15,9 @@
     <ClCompile Include="io\thread.c">
       <Filter>io</Filter>
     </ClCompile>
+    <ClCompile Include="io\common.c">
+      <Filter>io</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="io\serial.h">

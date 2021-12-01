@@ -58,7 +58,7 @@ void* serial_reader(void* arg)
   int8_t b[32] = {0};
   tagCSerial* p = (tagCSerial*)arg;
   xSET_SEMAPHORE(p->_SR_, 0x80000000, 0x80000000);
-  while ( xCHECK_SEMAPHORE(p->_SR_, 0x40000000, 0x40000000) )
+  while ( xCHECK_SEMAPHORE(p->_SR_, 0x00000000, 0x40000000) )
   {
     e = serial_read(p, p->fd, b, 32);
     if ( e > 0 )
