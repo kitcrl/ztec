@@ -15,6 +15,8 @@ namespace ztecIOWin
 
     public delegate Int32 OnCallback(UInt32 type, string msg);
 
+
+    zTClient tclient;
     zTCPd tcpd;
     zSerial serial;
     kr.co.ztec.io.Common common = new kr.co.ztec.io.Common();
@@ -23,16 +25,22 @@ namespace ztecIOWin
     OnCallback onSCallback;
     public Form1()
     {
+      InitInstance();
       InitializeComponent();
       InitComponent();
     }
 
-    public void InitComponent()
+    public void InitInstance()
     {
-
       onCallback = new OnCallback(_Callback);
       onSCallback = new OnCallback(_SCallback);
+      tcpd = new zTCPd(this);
+      serial = new zSerial(this);
+      tclient = new zTClient();
+    }
 
+    public void InitComponent()
+    {
       this.txtIP.Text = "127.0.0.1";      
       this.txtPort.Text = "9000";
 
@@ -56,8 +64,28 @@ namespace ztecIOWin
       this.lvSRead.ColumnHeaderText(1, "log", 600);
 
 
-      tcpd = new zTCPd(this);
-      serial = new zSerial(this);
+      this.panels = new System.Windows.Forms.Panel[this.tclient.MAX_CLIENT];
+      // 
+      // panels
+      // 
+      int i = 0;
+      int pX = 12, pY = 170;
+      int pofst = 1;
+      int w = 10, h = 10;
+      for (i = 0; i < tclient.MAX_CLIENT; i++)
+      {
+        pX = 12 + (pofst + w) * (i);
+        this.panels[i] = new System.Windows.Forms.Panel();
+        this.panels[i].Location = new System.Drawing.Point(pX, pY);
+        //this.panels[i].Name = string.Format("panel{d:03}", i);
+        this.panels[i].Size = new System.Drawing.Size(w, h);
+        this.panels[i].BackColor = Color.FromArgb(0xFF, 0xFF, 0, 0);
+      }
+      for (i = 0; i < 48; i++)
+      {
+        this.Controls.Add(this.panels[i]);
+      }
+
     }
 
     public int OnRead(int fd, byte[] b, int sz, UInt32 err)
@@ -67,11 +95,9 @@ namespace ztecIOWin
 
     public int OnStatus(int fd, byte[] b, int sz, UInt32 err)
     {
+      Int32 idx = 0;
       string _b = "";
-
-
       /////   1460:127.0.0.1:11520
-
       if (sz > 0)
       {
         _b = System.Text.Encoding.UTF8.GetString(b);
@@ -80,6 +106,14 @@ namespace ztecIOWin
 
       if (err != 0xE000FDAB && err != 0xE000FDAA)
       {
+        if (err == 0xE000FDA0)
+        {
+          idx = tclient.Set(fd, null, 0);
+          if (idx >= 0)
+          {
+            this.panels[idx].BackColor = Color.FromArgb(0xFF, 0, 0xFF, 0);
+          }
+        }
         this.Invoke(onCallback, (UInt32)0, item);
       }
       return 0;
