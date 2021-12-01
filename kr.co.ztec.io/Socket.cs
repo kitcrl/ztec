@@ -112,13 +112,18 @@ namespace kr.co.ztec.io
     private Int32 onStatus(void* h, Int32 fd, byte* b, Int32 sz, UInt32 err, void* o)
     {
       Int32 e = 0;
+      byte[] _b = new byte[sz];
 
       /*
        * err == 0xE000FDAA,
        * o -->  string....
        * fd:ip:port
        */
-      _callback[0].Invoke(fd, null, sz, err);
+      if (sz > 0)
+      {
+        Marshal.Copy((IntPtr)b, _b, 0, sz);
+      }
+      _callback[0].Invoke(fd, _b, sz, err);
       return e;
     }
 

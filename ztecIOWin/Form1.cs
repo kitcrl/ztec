@@ -67,7 +67,16 @@ namespace ztecIOWin
 
     public int OnStatus(int fd, byte[] b, int sz, UInt32 err)
     {
-      string item = string.Format("Status {0:d04} {1:d4} {2:X08}\r\n", fd, sz, err);
+      string _b = "";
+
+
+      /////   1460:127.0.0.1:11520
+
+      if (sz > 0)
+      {
+        _b = System.Text.Encoding.UTF8.GetString(b);
+      }
+      string item = string.Format("Status {0:d04} {1:d4} {2:X08} ", fd, sz, err) + _b;
 
       if (err != 0xE000FDAB && err != 0xE000FDAA)
       {
