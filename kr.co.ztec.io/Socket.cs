@@ -87,12 +87,12 @@ namespace kr.co.ztec.io
       return e;
     }
 
-    public Int32 Write(byte[] b, Int32 sz)
+    public Int32 Write(Int32 fd, byte[] b, Int32 sz)
     {
       Int32 e = 0;
       fixed (byte* _b = b)
       {
-        e = socket_write(hdl, this.fd, _b, sz);
+        e = socket_write(hdl, fd, _b, sz);
       }
       return e;
     }

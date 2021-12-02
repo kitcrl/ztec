@@ -27,6 +27,14 @@ namespace ztecIOWin
       return _socket.Close();
     }
 
+    public Int32 Write(int fd, byte[] b, Int32 sz)
+    {
+      Int32 e = 0;
+
+      _socket.Write(fd, b, sz);
+      return e;
+    }
+
 
     public int Read(int fd, byte[] b, int sz, UInt32 err)
     {
