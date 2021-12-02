@@ -80,6 +80,7 @@ namespace ztecIOWin
         //this.panels[i].Name = string.Format("panel{d:03}", i);
         this.panels[i].Size = new System.Drawing.Size(w, h);
         this.panels[i].BackColor = Color.FromArgb(0xFF, 0xFF, 0, 0);
+        this.panels[i].MouseHover += new System.EventHandler(this.panels_MouseHover);
       }
       for (i = 0; i < 48; i++)
       {
@@ -90,6 +91,13 @@ namespace ztecIOWin
 
     public int OnRead(int fd, byte[] b, int sz, UInt32 err)
     {
+      string _b = "";
+      if (sz > 0)
+      {
+        _b = System.Text.Encoding.UTF8.GetString(b);
+      }
+      string item = "OnRead " + _b;
+      this.Invoke(onCallback, (UInt32)0, item);
       return 0;
     }
 
@@ -104,7 +112,7 @@ namespace ztecIOWin
       }
       string item = string.Format("Status {0:d04} {1:d4} {2:X08} ", fd, sz, err) + _b;
 
-      if (err != 0xE000FDAB && err != 0xE000FDAA)
+      if (err != 0xE000FDAB && err != 0xE000FDAA && err != 0xE000101B && err != 0xE000101A)
       {
         if (err == 0xE000FDA0)
         {
@@ -112,6 +120,15 @@ namespace ztecIOWin
           if (idx >= 0)
           {
             this.panels[idx].BackColor = Color.FromArgb(0xFF, 0, 0xFF, 0);
+          }
+        }
+        if (err == 0xE000101F)
+        {
+          idx = tclient.GetIndex(fd);
+          if (idx >= 0)
+          {
+            this.panels[idx].BackColor = Color.FromArgb(0xFF, 0xFF, 0, 0);
+            tclient.Reset(fd);
           }
         }
         this.Invoke(onCallback, (UInt32)0, item);
@@ -203,6 +220,19 @@ namespace ztecIOWin
       this.Invoke(onSCallback, (UInt32)0, __out);
 
 
+    }
+
+    private void panels_MouseHover(object sender, EventArgs e)
+    {
+      int i = 0;
+
+      for (i = 0; i < tclient.MAX_CLIENT; i++)
+      {
+        if (this.panels[i] == sender)
+        {
+
+        }
+      }
     }
   }
 }

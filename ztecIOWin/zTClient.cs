@@ -74,6 +74,21 @@ namespace ztecIOWin
       return cinfo[index].fd;
     }
 
+    public Int32 GetIndex(Int32 fd)
+    {
+      Int32 e = -1;
+      Int32 i = 0;
+
+      for (i = 0; i < MAX_CLIENT; i++)
+      {
+        if (cinfo[i].fd == fd)
+        {
+          e = i;
+          break;
+        }
+      }
+      return e;
+    }
 
 
   }
