@@ -11,10 +11,14 @@ namespace ztecIOWin
     public Int32 fd;
     public Int32 ip;  //  192.168.0.10   ->   C0 A8 00 0A
     public Int32 port;
+    public byte[] rb;
+    //public byte[] wb;
   };
   class zTClient
   {
     public Int32 MAX_CLIENT = 256;
+    public Int32 MAX_BUF_SZ = 1024;
+    public Int32 MAX_BUF_COUNT = 128;
     public clientInfo[] cinfo;
     public zTClient()
     {
@@ -29,6 +33,7 @@ namespace ztecIOWin
         cinfo[i].fd = 0;
         cinfo[i].ip = 0;
         cinfo[i].port = 0;
+        cinfo[i].rb = new byte[MAX_BUF_SZ * MAX_BUF_COUNT];
       }
     }
     public Int32 Set(Int32 fd, string ip, Int32 port)

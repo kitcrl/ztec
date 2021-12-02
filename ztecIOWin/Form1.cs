@@ -89,6 +89,26 @@ namespace ztecIOWin
 
     }
 
+
+    public int DoBroadcasting(byte[] b, int sz)
+    {
+      int e = 0;
+      int i = 0;
+
+      for (i = 0; i < tclient.MAX_CLIENT; i++)
+      {
+        if (tclient.cinfo[i].fd > 0)
+        {
+          panels[i].BackColor = Color.FromArgb(0xFF, 0xFF, 0xFF, 0);
+          tcpd.Write(tclient.cinfo[i].fd, b, sz);
+          panels[i].BackColor = Color.FromArgb(0xFF, 0xFF, 0, 0);
+        }
+      }
+      return e;
+    }
+
+
+
     public int OnRead(int fd, byte[] b, int sz, UInt32 err)
     {
       string _b = "";
@@ -97,7 +117,12 @@ namespace ztecIOWin
         _b = System.Text.Encoding.UTF8.GetString(b);
       }
       string item = "OnRead " + _b;
+
+      //// echo
+      //tcpd.Write(fd, b, sz);
+      DoBroadcasting(b, sz);
       this.Invoke(onCallback, (UInt32)0, item);
+      //onCallback.BeginInvoke((UInt32)0, item, null, null);
       return 0;
     }
 
