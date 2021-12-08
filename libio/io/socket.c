@@ -324,31 +324,32 @@ void* __socket_reader_d(tagCSocket* p)
   while ( xCHECK_SEMAPHORE(p->_SR_,0x00000000, 0x40000000) )
   {
     fd = p->_client._fds[i].fd;
-    if ( fd <=0 ) continue;
-    p->callback[SOCKET_ON_STATUS](p->o, fd, (int8_t*)&p->_client._fds[i].p, i, 0xE000101B, 0);
-
-    sz = 2 << *(p->_client._fds[i].p+0);
-    //p->_client._fds[i].p = p->_client._fds[i]._b[idx];
-    e = socket_read(p, fd, p->_client._fds[i].p, sz);
-    if ( e > 0 )
+    if ( fd > 0 )
     {
-      p->callback[SOCKET_ON_READ](p->o, fd, p->_client._fds[i].p, e, 0, 0);
-      p->callback[SOCKET_ON_STATUS](p->o, fd, (int8_t*)&p->_client._fds[i].p, i, 0xE0001010, 0);
+      p->callback[SOCKET_ON_STATUS](p->o, fd, (int8_t*)&p->_client._fds[i].p, i, 0xE000101B, 0);
 
-    }
-    else
-    {
-      if ( e == 0 )
+      sz = 2 << *(p->_client._fds[i].p+0);
+      //p->_client._fds[i].p = p->_client._fds[i]._b[idx];
+      e = socket_read(p, fd, p->_client._fds[i].p, sz);
+      if ( e > 0 )
       {
-        p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101F, 0);
-        xLOCK(&p->_cr);
-        clear_client_fd(&p->_client, fd);
-        xUNLOCK(&p->_cr);
-        //print_client_fd(&p->_client);
-      }
-    }
-    p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101A, 0);
+        p->callback[SOCKET_ON_READ](p->o, fd, p->_client._fds[i].p, e, 0, 0);
+        p->callback[SOCKET_ON_STATUS](p->o, fd, (int8_t*)&p->_client._fds[i].p, i, 0xE0001010, 0);
 
+      }
+      else
+      {
+        if ( e == 0 )
+        {
+          p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101F, 0);
+          xLOCK(&p->_cr);
+          clear_client_fd(&p->_client, fd);
+          xUNLOCK(&p->_cr);
+          //print_client_fd(&p->_client);
+        }
+      }
+      p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101A, 0);
+    }
     i = ((++i)%MAX_CLIENT);
 
     zDelay(1);
