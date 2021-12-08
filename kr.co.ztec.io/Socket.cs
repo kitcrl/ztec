@@ -153,16 +153,16 @@ namespace kr.co.ztec.io
       }
       else if (err == 0xE000FD10 || err == 0xE000101B || err == 0xE0001010)
       {
+        if (err == 0xE0001010)
+        {
+          this._buf[sz].idx++;
+          this._buf[sz].idx %= BUFFER_COUNT;
+        }
         fixed (byte* __b = this._buf[sz].b[this._buf[sz].idx])
         {
           this._buf[sz].b[this._buf[sz].idx][0] = 0x08;
           *(byte**)b = __b;
 
-          if (err != 0xE000101B)
-          {
-            this._buf[sz].idx++;
-            this._buf[sz].idx %= BUFFER_COUNT;
-          }
         }
       }
 
