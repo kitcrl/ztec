@@ -3,6 +3,12 @@ using System.Runtime.InteropServices;
 
 namespace kr.co.ztec.io
 {
+
+  struct cBuffer
+  {
+    public byte[][] b;
+  };
+
   unsafe public partial class Socket
   {
     private delegate Int32 OnCallback(Int32 fd, byte[] b, Int32 sz, UInt32 err);
@@ -35,10 +41,22 @@ namespace kr.co.ztec.io
     void* hdl = null;
     Int32 fd;
     ISocket _isck = null;
+    cBuffer[] _buf = new cBuffer[32];
 
     public Socket(ISocket _i)
     {
+      int i = 0;
+      int j = 0;
       _isck = _i;
+
+      for (i = 0; i < 32; i++)
+      {
+        _buf[i] = new cBuffer();
+        _buf[i].b = new byte[128][];
+        for (j = 0; j < 128; j++)
+          _buf[i].b[j] = new byte[256];
+      }
+
 
       _dlgtOnCallback = new DlgtOnCallback[2];
       _dlgtOnCallback[0] = new DlgtOnCallback(onStatus);
@@ -119,10 +137,26 @@ namespace kr.co.ztec.io
        * o -->  string....
        * fd:ip:port
        */
-      if (sz > 0)
+
+      if ((err & 0xFFFFFFF0) == 0xE000FDA0)
       {
-        Marshal.Copy((IntPtr)b, _b, 0, sz);
+        if (sz > 0)
+        {
+          Marshal.Copy((IntPtr)b, _b, 0, sz);
+        }
       }
+      else if (err == 0xE000101B)
+      {
+        //fixed (b = (byte*)_b)
+        //{
+
+        //}
+
+      }
+
+
+
+
       _callback[0].Invoke(fd, _b, sz, err);
       return e;
     }

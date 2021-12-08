@@ -56,11 +56,27 @@ enum
 #define MAX_CLIENT       256
 
 
+#define BUFFER_COUNT     128
+#define BUFFER_SIZE      256
+
+
+
+
+#pragma pack(1)
+typedef struct
+{
+  int32_t fd;
+  int8_t* p;
+  //int8_t _b[BUFFER_COUNT][BUFFER_SIZE];
+} fds;
+#pragma pack()
+
+
 #pragma pack(1)
 typedef struct
 {
   fd_set fdset;
-  volatile int32_t fd[MAX_CLIENT];
+  volatile fds _fds[MAX_CLIENT];
 } tagCSocketClient;
 #pragma pack()
 
@@ -91,7 +107,7 @@ void print_client_fd(tagCSocketClient* p)
   {
     if ( i && ((i%16)==0) ) printf("\r\n");
     else if ( i && ((i%8)==0) ) printf("  ");
-    printf("  %4d", p->fd[i]);
+    printf("  %4d", p->_fds[i].fd);
   }
   printf("\r\n");
 }
@@ -104,9 +120,9 @@ int32_t set_client_fd(tagCSocketClient* p, int32_t fd)
 
   for ( i=0 ; i<MAX_CLIENT ; i++ )
   {
-    if ( p->fd[i] <= 0 )
+    if ( p->_fds[i].fd <= 0 )
     {
-      p->fd[i] = fd;
+      p->_fds[i].fd = fd;
       e = i;
       break;
     }
@@ -123,14 +139,14 @@ int32_t clear_client_fd(tagCSocketClient* p, int32_t fd)
   {
     if ( fd == -1 )
     {
-      p->fd[i] = 0;
+      p->_fds[i].fd = 0;
       e = i;
     }
     else
     {
-      if ( p->fd[i] == fd )
+      if ( p->_fds[i].fd == fd )
       {
-        p->fd[i] = 0;
+        p->_fds[i].fd = 0;
         e = i;
         break;
       }
@@ -304,14 +320,16 @@ void* __socket_reader_d(tagCSocket* p)
 
   while ( xCHECK_SEMAPHORE(p->_SR_,0x00000000, 0x40000000) )
   {
-    fd = p->_client.fd[i];
+    fd = p->_client._fds[i].fd;
     i = ((++i)%MAX_CLIENT);
     if ( fd <=0 ) continue;
-    p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101B, 0);
-    e = socket_read(p, fd, b, 1024);
+    p->callback[SOCKET_ON_STATUS](p->o, fd, p->_client._fds[i].p, 0, 0xE000101B, 0);
+
+    //p->_client._fds[i].p = p->_client._fds[i]._b[idx];
+    e = socket_read(p, fd, p->_client._fds[i].p, BUFFER_SIZE);
     if ( e > 0 )
     {
-      p->callback[SOCKET_ON_READ](p->o, fd, b, e, 0, 0);
+      p->callback[SOCKET_ON_READ](p->o, fd, p->_client._fds[i].p, e, 0, 0);
     }
     else
     {
