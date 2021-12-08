@@ -7,6 +7,7 @@ namespace kr.co.ztec.io
   struct cBuffer
   {
     public byte[][] b;
+    public int idx;
   };
 
   unsafe public partial class Socket
@@ -43,18 +44,23 @@ namespace kr.co.ztec.io
     ISocket _isck = null;
     cBuffer[] _buf = new cBuffer[32];
 
+    Int32 CLIENT_COUNT = 32;
+    Int32 BUFFER_COUNT = 128;
+    Int32 BUFFER_SIZE = 256;
+
     public Socket(ISocket _i)
     {
       int i = 0;
       int j = 0;
       _isck = _i;
 
-      for (i = 0; i < 32; i++)
+      for (i = 0; i < CLIENT_COUNT; i++)
       {
         _buf[i] = new cBuffer();
-        _buf[i].b = new byte[128][];
-        for (j = 0; j < 128; j++)
-          _buf[i].b[j] = new byte[256];
+        _buf[i].idx = 0;
+        _buf[i].b = new byte[BUFFER_COUNT][];
+        for (j = 0; j < BUFFER_COUNT; j++)
+          _buf[i].b[j] = new byte[BUFFER_SIZE];
       }
 
 
@@ -145,15 +151,20 @@ namespace kr.co.ztec.io
           Marshal.Copy((IntPtr)b, _b, 0, sz);
         }
       }
-      else if (err == 0xE000101B)
+      else if (err == 0xE000FD10 || err == 0xE000101B || err == 0xE0001010)
       {
-        //fixed (b = (byte*)_b)
-        //{
+        fixed (byte* __b = this._buf[sz].b[this._buf[sz].idx])
+        {
+          this._buf[sz].b[this._buf[sz].idx][0] = 0x08;
+          *(byte**)b = __b;
 
-        //}
-
+          if (err != 0xE000101B)
+          {
+            this._buf[sz].idx++;
+            this._buf[sz].idx %= BUFFER_COUNT;
+          }
+        }
       }
-
 
 
 

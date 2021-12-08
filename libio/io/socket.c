@@ -242,6 +242,7 @@ int32_t connection_status(int32_t fd, int32_t timeout)
 
 void* socket_accepter(void* arg)
 {
+  int32_t idx = 0;
   int32_t e = 0;
   int8_t b[32] = {0};
   struct sockaddr client = {0};
@@ -259,7 +260,7 @@ void* socket_accepter(void* arg)
     if ( cfd > 0 )
     {
       xLOCK(&p->_cr);
-      set_client_fd(&p->_client, cfd);
+      idx = set_client_fd(&p->_client, cfd);
       xUNLOCK(&p->_cr);
       //print_client_fd(&p->_client);
       sprintf(cbinfo, "%d:%d.%d.%d.%d:%d",cfd,
@@ -269,6 +270,7 @@ void* socket_accepter(void* arg)
               (pc->sin_addr.s_addr&0xFF000000)>>24,
               htons(pc->sin_port));
       p->callback[SOCKET_ON_STATUS](p->o, cfd, cfd>0?cbinfo:0, cfd>0?strlen(cbinfo):0, 0xE000FDA0, 0);
+      p->callback[SOCKET_ON_STATUS](p->o, cfd, (int8_t*)&p->_client._fds[idx].p, idx, 0xE000FD10, 0);
     }
     p->callback[SOCKET_ON_STATUS](p->o, p->fd, cfd>0?cbinfo:0, cfd>0?strlen(cbinfo):0, 0xE000FDAA, 0);
     zDelay(1);
@@ -314,6 +316,7 @@ void* __socket_reader_c(tagCSocket* p)
 void* __socket_reader_d(tagCSocket* p)
 {
   int32_t i = 0;
+  int32_t sz = 0;
   int32_t e = 0;
   int32_t fd = 0;
   int8_t b[1024] = {0};
@@ -323,13 +326,16 @@ void* __socket_reader_d(tagCSocket* p)
     fd = p->_client._fds[i].fd;
     i = ((++i)%MAX_CLIENT);
     if ( fd <=0 ) continue;
-    p->callback[SOCKET_ON_STATUS](p->o, fd, p->_client._fds[i].p, 0, 0xE000101B, 0);
+    p->callback[SOCKET_ON_STATUS](p->o, fd, (int8_t*)&p->_client._fds[i].p, i, 0xE000101B, 0);
 
+    sz = 2 << *(p->_client._fds[i].p+0);
     //p->_client._fds[i].p = p->_client._fds[i]._b[idx];
-    e = socket_read(p, fd, p->_client._fds[i].p, BUFFER_SIZE);
+    e = socket_read(p, fd, p->_client._fds[i].p, sz);
     if ( e > 0 )
     {
       p->callback[SOCKET_ON_READ](p->o, fd, p->_client._fds[i].p, e, 0, 0);
+      p->callback[SOCKET_ON_STATUS](p->o, fd, (int8_t*)&p->_client._fds[i].p, i, 0xE0001010, 0);
+
     }
     else
     {
