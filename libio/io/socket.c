@@ -324,7 +324,6 @@ void* __socket_reader_d(tagCSocket* p)
   while ( xCHECK_SEMAPHORE(p->_SR_,0x00000000, 0x40000000) )
   {
     fd = p->_client._fds[i].fd;
-    i = ((++i)%MAX_CLIENT);
     if ( fd <=0 ) continue;
     p->callback[SOCKET_ON_STATUS](p->o, fd, (int8_t*)&p->_client._fds[i].p, i, 0xE000101B, 0);
 
@@ -349,6 +348,9 @@ void* __socket_reader_d(tagCSocket* p)
       }
     }
     p->callback[SOCKET_ON_STATUS](p->o, fd, 0, 0, 0xE000101A, 0);
+
+    i = ((++i)%MAX_CLIENT);
+
     zDelay(1);
   }
 }
