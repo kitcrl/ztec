@@ -4,11 +4,6 @@ using System.Runtime.InteropServices;
 namespace kr.co.ztec.io
 {
 
-  struct cBuffer
-  {
-    public byte[][] b;
-    public int idx;
-  };
 
   unsafe public partial class Socket
   {
@@ -39,10 +34,10 @@ namespace kr.co.ztec.io
     DlgtOnCallback[] _dlgtOnCallback;
     UInt32[] _dlgtPtr;
 
+    csBuffer _buf;
     void* hdl = null;
     Int32 fd;
     ISocket _isck = null;
-    cBuffer[] _buf = new cBuffer[32];
 
     Int32 CLIENT_COUNT = 32;
     Int32 BUFFER_COUNT = 128;
@@ -50,19 +45,9 @@ namespace kr.co.ztec.io
 
     public Socket(ISocket _i)
     {
-      int i = 0;
-      int j = 0;
       _isck = _i;
 
-      for (i = 0; i < CLIENT_COUNT; i++)
-      {
-        _buf[i] = new cBuffer();
-        _buf[i].idx = 0;
-        _buf[i].b = new byte[BUFFER_COUNT][];
-        for (j = 0; j < BUFFER_COUNT; j++)
-          _buf[i].b[j] = new byte[BUFFER_SIZE];
-      }
-
+      _buf = new csBuffer(CLIENT_COUNT, BUFFER_COUNT, BUFFER_SIZE);
 
       _dlgtOnCallback = new DlgtOnCallback[2];
       _dlgtOnCallback[0] = new DlgtOnCallback(onStatus);
@@ -155,12 +140,12 @@ namespace kr.co.ztec.io
       {
         if (err == 0xE0001010)
         {
-          this._buf[sz].idx++;
-          this._buf[sz].idx %= BUFFER_COUNT;
+          this._buf._b[sz].idx++;
+          this._buf._b[sz].idx %= BUFFER_COUNT;
         }
-        fixed (byte* __b = this._buf[sz].b[this._buf[sz].idx])
+        fixed (byte* __b = _buf._b[sz].b[_buf._b[sz].idx])
         {
-          this._buf[sz].b[this._buf[sz].idx][0] = 0x08;
+          this._buf._b[sz].b[this._buf._b[sz].idx][0] = 0x08;
           *(byte**)b = __b;
 
         }
