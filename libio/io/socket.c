@@ -328,7 +328,7 @@ void* __socket_reader_d(tagCSocket* p)
     {
       p->callback[SOCKET_ON_STATUS](p->o, fd, (int8_t*)&p->_client._fds[i].p, i, 0xE000101B, 0);
 
-      sz = 2 << *(p->_client._fds[i].p+0);
+      sz = 1 << *(p->_client._fds[i].p+0);
       //p->_client._fds[i].p = p->_client._fds[i]._b[idx];
       e = socket_read(p, fd, p->_client._fds[i].p, sz);
       if ( e > 0 )
