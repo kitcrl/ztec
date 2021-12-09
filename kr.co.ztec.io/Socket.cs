@@ -36,6 +36,7 @@ namespace kr.co.ztec.io
 
     csTimer _tmr;
     csBuffer _buf;
+    csProtocolProc _pproc;
     void* hdl = null;
     Int32 fd;
     ISocket _isck = null;
@@ -48,8 +49,8 @@ namespace kr.co.ztec.io
     {
       _isck = _i;
 
-      _tmr = new csTimer(this, 1);
       _buf = new csBuffer(CLIENT_COUNT, BUFFER_COUNT, BUFFER_SIZE);
+      _pproc = new csProtocolProc(4096);
 
       _dlgtOnCallback = new DlgtOnCallback[2];
       _dlgtOnCallback[0] = new DlgtOnCallback(onStatus);
@@ -62,6 +63,9 @@ namespace kr.co.ztec.io
       _callback = new OnCallback[2];
       _callback[0] = new OnCallback(dlgtStatus);
       _callback[1] = new OnCallback(dlgtRead);
+
+
+      _tmr = new csTimer(this, 100);
     }
 
     public Int32 Open(string ip, string port, string cstype, string protocol, string casttype)
@@ -177,10 +181,16 @@ namespace kr.co.ztec.io
 
     public void OnTimeOut()
     {
+      Int32 e = 0;
       if (_buf._b[0].head != _buf._b[0].tail)
       {
-        string item = System.Text.Encoding.UTF8.GetString(this._buf._b[0].b[this._buf._b[0].head]);
-        System.Diagnostics.Debug.WriteLine(item);
+
+        e = this._pproc.AssignBuffer(this._buf._b[0].b[_buf._b[0].head], this._buf._b[0].b[_buf._b[0].head].Length);
+        if (e > 0)
+        {
+          string item = System.Text.Encoding.UTF8.GetString(this._pproc.buf);
+          System.Diagnostics.Debug.WriteLine(item);
+        }
         this._buf._b[0].head++;
         this._buf._b[0].head %= BUFFER_COUNT;
       }

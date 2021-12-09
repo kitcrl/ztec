@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Common.cs" />
     <Compile Include="csBuffer.cs" />
+    <Compile Include="csProtocolProc.cs" />
     <Compile Include="csTimer.cs" />
     <Compile Include="IcsTimer.cs" />
     <Compile Include="ISerial.cs" />
