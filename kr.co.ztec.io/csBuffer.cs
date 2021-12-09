@@ -9,7 +9,8 @@ namespace kr.co.ztec.io
   struct cBuffer
   {
     public byte[][] b;
-    public int idx;
+    public int tail;
+    public int head;
   };
 
   class csBuffer
@@ -21,9 +22,10 @@ namespace kr.co.ztec.io
       int j;
       _b = new cBuffer[tcount];
 
-      for (j = 0; j < count; j++)
+      for (j = 0; j < tcount; j++)
       {
         _b[j].b = new byte[count][];
+        _b[j].head = _b[j].tail = 0;
         for (i = 0; i < count; i++)
         {
           _b[j].b[i] = new byte[size];

@@ -5,7 +5,7 @@ namespace kr.co.ztec.io
 {
 
 
-  unsafe public partial class Socket
+  unsafe public partial class Socket : IcsTimer
   {
     private delegate Int32 OnCallback(Int32 fd, byte[] b, Int32 sz, UInt32 err);
 
@@ -34,6 +34,7 @@ namespace kr.co.ztec.io
     DlgtOnCallback[] _dlgtOnCallback;
     UInt32[] _dlgtPtr;
 
+    csTimer _tmr;
     csBuffer _buf;
     void* hdl = null;
     Int32 fd;
@@ -47,6 +48,7 @@ namespace kr.co.ztec.io
     {
       _isck = _i;
 
+      _tmr = new csTimer(this, 1);
       _buf = new csBuffer(CLIENT_COUNT, BUFFER_COUNT, BUFFER_SIZE);
 
       _dlgtOnCallback = new DlgtOnCallback[2];
@@ -109,12 +111,12 @@ namespace kr.co.ztec.io
     private Int32 onRead(void* h, Int32 fd, byte* b, Int32 sz, UInt32 err, void* o)
     {
       Int32 e = 0;
-      byte[] _b = new byte[sz];
-      if (sz > 0)
-      {
-        Marshal.Copy((IntPtr)b, _b, 0, sz);
-        _callback[1].Invoke(fd, _b, sz, err);
-      }
+      //byte[] _b = new byte[sz];
+      //if (sz > 0)
+      //{
+      //  Marshal.Copy((IntPtr)b, _b, 0, sz);
+      //  _callback[1].Invoke(fd, _b, sz, err);
+      //}
       return e;
     }
 
@@ -140,12 +142,12 @@ namespace kr.co.ztec.io
       {
         if (err == 0xE0001010)
         {
-          this._buf._b[sz].idx++;
-          this._buf._b[sz].idx %= BUFFER_COUNT;
+          this._buf._b[sz].tail++;
+          this._buf._b[sz].tail %= BUFFER_COUNT;
         }
-        fixed (byte* __b = _buf._b[sz].b[_buf._b[sz].idx])
+        fixed (byte* __b = _buf._b[sz].b[_buf._b[sz].tail])
         {
-          this._buf._b[sz].b[this._buf._b[sz].idx][0] = 0x08;
+          this._buf._b[sz].b[this._buf._b[sz].tail][0] = 0x08;
           *(byte**)b = __b;
 
         }
@@ -173,8 +175,15 @@ namespace kr.co.ztec.io
       return e;
     }
 
-
-
+    public void OnTimeOut()
+    {
+      if (_buf._b[0].head != _buf._b[0].tail)
+      {
+        string item = System.Text.Encoding.UTF8.GetString(this._buf._b[0].b[this._buf._b[0].head]);
+        System.Diagnostics.Debug.WriteLine(item);
+        this._buf._b[0].head++;
+        this._buf._b[0].head %= BUFFER_COUNT;
+      }
+    }
   }
-
 }
